@@ -14,10 +14,15 @@ interface Props {
 export function MessageList({ messages, personaColor, typing, personaName }: Props) {
   const listRef = useRef<FlatList<ChatMessage>>(null);
 
+  const scrollKey =
+    messages.length > 0
+      ? `${messages[messages.length - 1]?.id}:${messages[messages.length - 1]?.content.length}`
+      : 'empty';
+
   useEffect(() => {
     if (messages.length === 0) return;
     listRef.current?.scrollToEnd({ animated: true });
-  }, [messages.length, typing]);
+  }, [scrollKey, typing, messages.length]);
 
   return (
     <FlatList

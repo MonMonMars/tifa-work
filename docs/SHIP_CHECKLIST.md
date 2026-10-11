@@ -42,3 +42,7 @@ Use before TestFlight / App Store. All items assume branch `cursor/companion-b2c
 ## CI
 
 - [ ] GitHub Actions green on PR
+
+## Port to weepo repo
+
+- [ ] Follow [PORT_TO_WEEPO.md](./PORT_TO_WEEPO.md) when `MonMonMars/weepo` is ready

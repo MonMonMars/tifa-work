@@ -224,6 +224,8 @@ export function SettingsScreen({ onClose, onWipedAllData }: Props) {
             Full draft for App Store: see docs/PRIVACY.md in the repo.
           </Text>
         </View>
+
+        <Text style={styles.footer}>Foundation build · v0.3.2 · tifa-work → weepo port</Text>
       </ScrollView>
     </SafeAreaView>
   );
@@ -309,4 +311,11 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   dangerBtnText: { color: '#ffb4b4', fontWeight: '800', fontSize: 14 },
+  footer: {
+    marginTop: 28,
+    color: UI.textDim,
+    fontSize: 11,
+    textAlign: 'center',
+    lineHeight: 16,
+  },
 });

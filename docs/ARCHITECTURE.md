@@ -42,7 +42,7 @@ Settings → `deviceTts.speak()` after assistant message. Mic = STT stub only.
 
 ## Docs
 
-- `docs/VOICE.md`, `docs/PRIVACY.md`, `docs/VRM_AVATAR.md`, `docs/SHIP_CHECKLIST.md`
+- `docs/VOICE.md`, `docs/PRIVACY.md`, `docs/VRM_AVATAR.md`, `docs/SHIP_CHECKLIST.md`, `docs/PORT_TO_WEEPO.md`
 
 ## Secrets
 

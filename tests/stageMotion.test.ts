@@ -12,3 +12,8 @@ test('stageMotionFromWeights boosts joy spin', () => {
 test('pickEmotionTag returns dominant key', () => {
   assert.equal(pickEmotionTag({ sadness: 0.7, neutral: 0.2 }), 'sadness');
 });
+
+test('pickEmotionTag omits neutral-only weights', () => {
+  assert.equal(pickEmotionTag({ neutral: 0.9 }), undefined);
+  assert.equal(pickEmotionTag({}), undefined);
+});

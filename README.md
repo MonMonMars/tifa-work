@@ -14,7 +14,7 @@ Node **22+** for `npm test`. Open with **Expo Go** (QR) or `npm run ios` on macO
 | Script | Purpose |
 |--------|---------|
 | `npm run typecheck` | TypeScript |
-| `npm test` | Unit tests (emotion, memory, LLM routing, voice strip, SSE parse) |
+| `npm test` | Unit tests (22) — emotion, memory, persistence merge, LLM routing, SSE, voice |
 
 ## What’s in this MVP foundation
 
@@ -51,6 +51,7 @@ Quick smoke:
 | [PRIVACY.md](./docs/PRIVACY.md) | App Store–oriented draft |
 | [VRM_AVATAR.md](./docs/VRM_AVATAR.md) | When you add `assets/models/*.vrm` |
 | [SHIP_CHECKLIST.md](./docs/SHIP_CHECKLIST.md) | Pre-release checklist |
+| [PORT_TO_WEEPO.md](./docs/PORT_TO_WEEPO.md) | Copy this foundation into `MonMonMars/weepo` |
 
 ## iOS
 
