@@ -40,23 +40,48 @@ export interface FocusDailyStats {
   minutesToday: number;
 }
 
+export interface FocusSoftBreak {
+  startedAtMs: number;
+  durationMinutes: number;
+}
+
 export interface FocusPersisted {
   daily: FocusDailyStats;
+  minutesByDay: Record<string, number>;
   active: FocusActiveSession | null;
+  activeBreak: FocusSoftBreak | null;
 }
 
 export interface WorkCompanionPrefs {
   tipsEnabled: boolean;
+  breakReminderEnabled: boolean;
 }
 
 const DEFAULT_FOCUS: FocusPersisted = {
   daily: { dayKey: '', minutesToday: 0 },
+  minutesByDay: {},
   active: null,
+  activeBreak: null,
 };
 
 const DEFAULT_WORK_COMPANION_PREFS: WorkCompanionPrefs = {
   tipsEnabled: true,
+  breakReminderEnabled: false,
 };
+
+function mergeFocusPersisted(parsed: Partial<FocusPersisted> | undefined): FocusPersisted {
+  const daily = { ...DEFAULT_FOCUS.daily, ...parsed?.daily };
+  let minutesByDay = { ...DEFAULT_FOCUS.minutesByDay, ...parsed?.minutesByDay };
+  if (daily.dayKey && daily.minutesToday > 0 && minutesByDay[daily.dayKey] == null) {
+    minutesByDay = { ...minutesByDay, [daily.dayKey]: daily.minutesToday };
+  }
+  return {
+    daily,
+    minutesByDay,
+    active: parsed?.active ?? null,
+    activeBreak: parsed?.activeBreak ?? null,
+  };
+}
 
 /** Keep in sync with `DEFAULT_VOICE_CONFIG` in `services/voice/types`. */
 const DEFAULT_VOICE_CONFIG: VoiceConfig = {
@@ -117,10 +142,7 @@ export function mergePersistedState(parsed: Partial<PersistedState> | null | und
     voiceConfig: { ...DEFAULT_VOICE_CONFIG, ...parsed.voiceConfig },
     checkIn: { ...DEFAULT_CHECK_IN, ...parsed.checkIn },
     notificationPrefs: { ...DEFAULT_NOTIFICATION_PREFS, ...parsed.notificationPrefs },
-    focus: {
-      daily: { ...DEFAULT_FOCUS.daily, ...parsed.focus?.daily },
-      active: parsed.focus?.active ?? null,
-    },
+    focus: mergeFocusPersisted(parsed.focus),
     workCompanion: { ...DEFAULT_WORK_COMPANION_PREFS, ...parsed.workCompanion },
   };
 }

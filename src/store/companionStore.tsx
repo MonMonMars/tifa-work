@@ -30,12 +30,16 @@ import {
   sendCompanionMessage,
 } from '../services/chat/chatService';
 import { deviceTts } from '../services/voice/tts';
+import { buildFocusLast7Days } from '../services/focus/focusHistory';
 import { buildFocusCompanionLine } from '../services/focus/focusBanter';
 import {
+  dismissSoftBreak,
   endFocusSession,
   formatWorkFocusMemoryNote,
+  isEarlyFocusAbandon,
   reconcileFocusOnLoad,
   startFocusSession,
+  startSoftBreak,
 } from '../services/focus/focusSession';
 import type { FocusPreset } from '../services/focus/types';
 import { hapticOnCheckIn, hapticOnSend } from '../services/haptics/feedback';
@@ -101,6 +105,9 @@ interface CompanionStoreValue {
   saveFocusWorkNote: (note: string) => void;
   workCompanion: WorkCompanionPrefs;
   setWorkCompanionPrefs: (patch: Partial<WorkCompanionPrefs>) => void;
+  focusLast7Days: ReturnType<typeof buildFocusLast7Days>;
+  focusActiveBreak: PersistedState['focus']['activeBreak'];
+  dismissFocusBreak: () => void;
 }
 
 const CompanionContext = createContext<CompanionStoreValue | null>(null);
@@ -144,7 +151,7 @@ export function CompanionProvider({ children }: { children: ReactNode }) {
   const [focusToast, setFocusToast] = useState<string | null>(null);
 
   const showFocusLine = useCallback(
-    (phase: 'start' | 'complete', seed: number) => {
+    (phase: 'start' | 'complete' | 'abandon', seed: number) => {
       const personaId = state.personaId;
       if (!personaId) return;
       const line = buildFocusCompanionLine(
@@ -258,20 +265,43 @@ export function CompanionProvider({ children }: { children: ReactNode }) {
     [showFocusLine],
   );
 
+  const dismissFocusBreak = useCallback(() => {
+    setState((s) => ({ ...s, focus: dismissSoftBreak(s.focus) }));
+  }, []);
+
   const finishFocusSession = useCallback(
     (reason: 'complete' | 'stop') => {
       const now = Date.now();
+      let abandoned = false;
       setState((s) => {
+        const session = s.focus.active;
+        if (session) {
+          abandoned = isEarlyFocusAbandon(session, now, reason);
+        }
         const result = endFocusSession(s.focus, now, reason);
-        return { ...s, focus: result.focus };
+        let focus = result.focus;
+        if (reason === 'complete' && s.workCompanion.breakReminderEnabled) {
+          focus = startSoftBreak(focus, now);
+        }
+        return { ...s, focus };
       });
-      showFocusLine('complete', now);
-      setExpression({
-        weights: { joy: 0.5, affection: 0.25, neutral: 0.2 },
-        label: 'Focus · done',
-        source: 'manual',
-        updatedAt: now,
-      });
+      if (abandoned) {
+        showFocusLine('abandon', now);
+        setExpression({
+          weights: { affection: 0.4, neutral: 0.35, sadness: 0.12 },
+          label: 'Focus · gentle pause',
+          source: 'manual',
+          updatedAt: now,
+        });
+      } else {
+        showFocusLine('complete', now);
+        setExpression({
+          weights: { joy: 0.5, affection: 0.25, neutral: 0.2 },
+          label: 'Focus · done',
+          source: 'manual',
+          updatedAt: now,
+        });
+      }
     },
     [showFocusLine],
   );
@@ -597,6 +627,9 @@ export function CompanionProvider({ children }: { children: ReactNode }) {
       saveFocusWorkNote,
       workCompanion: state.workCompanion,
       setWorkCompanionPrefs,
+      focusLast7Days: buildFocusLast7Days(state.focus.minutesByDay, localDateKey()),
+      focusActiveBreak: state.focus.activeBreak,
+      dismissFocusBreak,
     }),
     [
       ready,
@@ -634,6 +667,7 @@ export function CompanionProvider({ children }: { children: ReactNode }) {
       clearFocusToast,
       saveFocusWorkNote,
       setWorkCompanionPrefs,
+      dismissFocusBreak,
     ],
   );
 

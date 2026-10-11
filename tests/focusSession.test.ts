@@ -4,9 +4,11 @@ import {
   clampFocusDurationMinutes,
   endFocusSession,
   getRemainingSeconds,
+  isEarlyFocusAbandon,
   isSessionComplete,
   reconcileFocusOnLoad,
   startFocusSession,
+  startSoftBreak,
 } from '../src/services/focus/focusSession.ts';
 import { DEFAULT_PERSISTED } from '../src/store/persistedMerge.ts';
 
@@ -34,6 +36,14 @@ test('endFocusSession complete credits full duration', () => {
   assert.equal(result.minutesLogged, 25);
   assert.equal(result.focus.active, null);
   assert.equal(result.focus.daily.minutesToday, 25);
+  assert.equal(result.focus.minutesByDay['2026-10-11'], 25);
+});
+
+test('isEarlyFocusAbandon when stopped before half block', () => {
+  const focus = startFocusSession(DEFAULT_FOCUS, T0, 25, 'p25');
+  const session = focus.active!;
+  assert.equal(isEarlyFocusAbandon(session, T0 + 5 * 60_000, 'stop'), true);
+  assert.equal(isEarlyFocusAbandon(session, T0 + 20 * 60_000, 'stop'), false);
 });
 
 test('endFocusSession stop credits elapsed whole minutes', () => {
@@ -49,6 +59,11 @@ test('reconcileFocusOnLoad completes expired session', () => {
   assert.ok(result);
   assert.equal(result!.minutesLogged, 25);
   assert.equal(result!.focus.active, null);
+});
+
+test('startSoftBreak sets activeBreak', () => {
+  const focus = startSoftBreak(DEFAULT_FOCUS, T0);
+  assert.equal(focus.activeBreak?.durationMinutes, 5);
 });
 
 test('clampFocusDurationMinutes bounds input', () => {

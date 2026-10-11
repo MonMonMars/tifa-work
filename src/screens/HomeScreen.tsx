@@ -47,6 +47,9 @@ export function HomeScreen({
     completeFocusSession,
     clearFocusToast,
     saveFocusWorkNote,
+    focusLast7Days,
+    focusActiveBreak,
+    dismissFocusBreak,
   } = useCompanionStore();
 
   return (
@@ -90,6 +93,9 @@ export function HomeScreen({
         onComplete={completeFocusSession}
         onDismissToast={clearFocusToast}
         onSaveWorkNote={saveFocusWorkNote}
+        last7Days={focusLast7Days}
+        activeBreak={focusActiveBreak}
+        onDismissBreak={dismissFocusBreak}
       />
 
       <View style={styles.stage}>

@@ -1,4 +1,30 @@
-import type { FocusActiveSession, FocusDailyStats, FocusPersisted, FocusPreset } from './types';
+/** Shapes aligned with `types.ts` — kept here so Node unit tests avoid extensionless ESM imports. */
+export type FocusPreset = 'p25' | 'p50' | 'custom';
+
+export interface FocusActiveSession {
+  startedAtMs: number;
+  durationMinutes: number;
+  preset: FocusPreset;
+}
+
+export interface FocusDailyStats {
+  dayKey: string;
+  minutesToday: number;
+}
+
+export interface FocusSoftBreak {
+  startedAtMs: number;
+  durationMinutes: number;
+}
+
+export interface FocusPersisted {
+  daily: FocusDailyStats;
+  minutesByDay: Record<string, number>;
+  active: FocusActiveSession | null;
+  activeBreak: FocusSoftBreak | null;
+}
+
+export const SOFT_BREAK_MINUTES = 5;
 
 /** Device-local calendar day — keep aligned with `services/checkIn/streak.ts`. */
 function localDateKey(date: Date = new Date()): string {
@@ -6,6 +32,13 @@ function localDateKey(date: Date = new Date()): string {
   const m = String(date.getMonth() + 1).padStart(2, '0');
   const d = String(date.getDate()).padStart(2, '0');
   return `${y}-${m}-${d}`;
+}
+
+function previousDayKey(key: string): string {
+  const [y, m, d] = key.split('-').map(Number);
+  const dt = new Date(y!, m! - 1, d!);
+  dt.setDate(dt.getDate() - 1);
+  return localDateKey(dt);
 }
 
 export const FOCUS_PRESET_MINUTES = {
@@ -32,6 +65,76 @@ function addMinutes(daily: FocusDailyStats, todayKey: string, minutes: number): 
     dayKey: todayKey,
     minutesToday: base.minutesToday + Math.max(0, minutes),
   };
+}
+
+function trimMinutesByDay(
+  minutesByDay: Record<string, number>,
+  anchorDayKey: string,
+  keepDays = 14,
+): Record<string, number> {
+  let cutoff = anchorDayKey;
+  for (let i = 0; i < keepDays; i++) {
+    cutoff = previousDayKey(cutoff);
+  }
+  const next: Record<string, number> = {};
+  for (const [k, v] of Object.entries(minutesByDay)) {
+    if (k >= cutoff) next[k] = v;
+  }
+  return next;
+}
+
+function applyLoggedMinutes(
+  focus: FocusPersisted,
+  todayKey: string,
+  minutes: number,
+): FocusPersisted {
+  const add = Math.max(0, minutes);
+  const daily = addMinutes(focus.daily, todayKey, add);
+  const prevDay = focus.minutesByDay[todayKey] ?? 0;
+  const minutesByDay = trimMinutesByDay(
+    { ...focus.minutesByDay, [todayKey]: prevDay + add },
+    todayKey,
+    14,
+  );
+  return { ...focus, daily, minutesByDay };
+}
+
+export function isEarlyFocusAbandon(
+  session: FocusActiveSession,
+  nowMs: number,
+  reason: FocusEndReason,
+): boolean {
+  if (reason !== 'stop') return false;
+  const elapsed = elapsedWholeMinutes(session, nowMs);
+  const planned = session.durationMinutes;
+  const threshold = Math.max(3, Math.floor(planned * 0.5));
+  return elapsed < threshold;
+}
+
+export function startSoftBreak(focus: FocusPersisted, nowMs: number): FocusPersisted {
+  return {
+    ...focus,
+    activeBreak: { startedAtMs: nowMs, durationMinutes: SOFT_BREAK_MINUTES },
+  };
+}
+
+export function dismissSoftBreak(focus: FocusPersisted): FocusPersisted {
+  return { ...focus, activeBreak: null };
+}
+
+export function getBreakRemainingSeconds(
+  brk: { startedAtMs: number; durationMinutes: number },
+  nowMs: number,
+): number {
+  const end = brk.startedAtMs + brk.durationMinutes * 60_000;
+  return Math.max(0, Math.ceil((end - nowMs) / 1000));
+}
+
+export function isBreakComplete(
+  brk: { startedAtMs: number; durationMinutes: number },
+  nowMs: number,
+): boolean {
+  return getBreakRemainingSeconds(brk, nowMs) <= 0;
 }
 
 export function clampFocusDurationMinutes(raw: number): number {
@@ -65,7 +168,9 @@ export function startFocusSession(
 ): FocusPersisted {
   const todayKey = localDateKey(new Date(nowMs));
   return {
+    ...focus,
     daily: normalizeDaily(focus.daily, todayKey),
+    activeBreak: null,
     active: {
       startedAtMs: nowMs,
       durationMinutes: clampFocusDurationMinutes(durationMinutes),
@@ -93,10 +198,7 @@ export function endFocusSession(
     minutesLogged = elapsedWholeMinutes(session, nowMs);
   }
 
-  const next: FocusPersisted = {
-    daily: addMinutes(focus.daily, todayKey, minutesLogged),
-    active: null,
-  };
+  let next = applyLoggedMinutes({ ...focus, active: null }, todayKey, minutesLogged);
 
   return { focus: next, minutesLogged, reason };
 }

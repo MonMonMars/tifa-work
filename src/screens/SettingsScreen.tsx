@@ -234,6 +234,14 @@ export function SettingsScreen({ onClose, onWipedAllData }: Props) {
             accessibilityLabel="Focus session companion tips"
           />
         </View>
+        <View style={styles.row}>
+          <Text style={styles.label}>5 min break after focus</Text>
+          <Switch
+            value={workCompanion.breakReminderEnabled}
+            onValueChange={(breakReminderEnabled) => setWorkCompanionPrefs({ breakReminderEnabled })}
+            accessibilityLabel="Five minute soft break after completed focus"
+          />
+        </View>
 
         <Text style={[styles.section, { marginTop: 24 }]}>Reminders</Text>
         <Text style={styles.help}>
@@ -341,7 +349,7 @@ export function SettingsScreen({ onClose, onWipedAllData }: Props) {
           </Text>
         </View>
 
-        <Text style={styles.footer}>Foundation build · v0.7.0 · tifa-work → weepo port</Text>
+        <Text style={styles.footer}>Foundation build · v0.7.1 · tifa-work → weepo port</Text>
       </ScrollView>
     </SafeAreaView>
   );

@@ -7,12 +7,16 @@ import {
   TextInput,
   View,
 } from 'react-native';
+import { FocusHistoryStrip } from './FocusHistoryStrip';
+import type { FocusDayBar } from '../../services/focus/focusHistory';
 import {
   FOCUS_PRESET_MINUTES,
+  getBreakRemainingSeconds,
   getRemainingSeconds,
+  isBreakComplete,
   isSessionComplete,
 } from '../../services/focus/focusSession';
-import type { FocusPreset } from '../../services/focus/types';
+import type { FocusPreset, FocusSoftBreak } from '../../services/focus/types';
 import { inputFontSize } from '../../theme/tokens';
 import { useUi } from '../../theme/useUi';
 
@@ -29,6 +33,9 @@ interface Props {
   onComplete: () => void;
   onDismissToast: () => void;
   onSaveWorkNote: (note: string) => void;
+  last7Days: FocusDayBar[];
+  activeBreak: FocusSoftBreak | null;
+  onDismissBreak: () => void;
 }
 
 function formatCountdown(totalSec: number): string {
@@ -46,6 +53,9 @@ export function FocusSessionCard({
   onComplete,
   onDismissToast,
   onSaveWorkNote,
+  last7Days,
+  activeBreak,
+  onDismissBreak,
 }: Props) {
   const UI = useUi();
   const styles = useMemo(() => makeStyles(UI), [UI]);
@@ -62,13 +72,17 @@ export function FocusSessionCard({
   }, [focusToast, onDismissToast]);
 
   useEffect(() => {
-    if (!active) {
-      autoCompleteRef.current = false;
-      return;
-    }
+    if (!active && !activeBreak) return;
     const id = setInterval(() => setTick((n) => n + 1), 1000);
     return () => clearInterval(id);
-  }, [active]);
+  }, [active, activeBreak]);
+
+  useEffect(() => {
+    if (!activeBreak) return;
+    if (isBreakComplete(activeBreak, Date.now())) {
+      onDismissBreak();
+    }
+  }, [activeBreak, tick, onDismissBreak]);
 
   useEffect(() => {
     if (!active) return;
@@ -81,6 +95,7 @@ export function FocusSessionCard({
   }, [active, tick, onComplete]);
 
   const remaining = active ? getRemainingSeconds(active, Date.now()) : 0;
+  const breakRemaining = activeBreak ? getBreakRemainingSeconds(activeBreak, Date.now()) : 0;
 
   const startPreset = (preset: FocusPreset) => {
     const minutes =
@@ -163,6 +178,17 @@ export function FocusSessionCard({
       ) : (
         <Text style={styles.hint}>Work block in progress — companion tips if enabled in Settings.</Text>
       )}
+
+      {activeBreak && !active ? (
+        <View style={styles.breakRow}>
+          <Text style={styles.breakLabel}>Soft break · {formatCountdown(breakRemaining)}</Text>
+          <Pressable onPress={onDismissBreak} accessibilityRole="button">
+            <Text style={styles.breakSkip}>Skip</Text>
+          </Pressable>
+        </View>
+      ) : null}
+
+      <FocusHistoryStrip days={last7Days} />
 
       {focusToast ? (
         <Pressable onPress={onDismissToast}>
@@ -261,6 +287,20 @@ function makeStyles(UI: ReturnType<typeof useUi>) {
     customBtnText: { color: '#fff', fontWeight: '800' },
     hint: { color: UI.textDim, fontSize: 11, marginTop: 8 },
     toast: { color: UI.accent, fontSize: 12, marginTop: 8, fontWeight: '600', lineHeight: 17 },
+    breakRow: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'space-between',
+      marginTop: 8,
+      paddingVertical: 8,
+      paddingHorizontal: 10,
+      backgroundColor: UI.surfaceTop,
+      borderRadius: 3,
+      borderWidth: 1,
+      borderColor: UI.hairline,
+    },
+    breakLabel: { color: UI.textMid, fontSize: 12, fontWeight: '700' },
+    breakSkip: { color: UI.accent, fontWeight: '800', fontSize: 12 },
     modalBackdrop: {
       flex: 1,
       backgroundColor: 'rgba(0,0,0,0.55)',

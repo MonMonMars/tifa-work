@@ -30,6 +30,9 @@ Use before TestFlight / App Store. All items assume branch `cursor/companion-b2c
 - [ ] Home → **25m / 50m / custom** focus → countdown → stop or auto-complete
 - [ ] Focus minutes today increment; optional end note → Settings memory (`Focus · …`)
 - [ ] Settings → **Focus session tips** off → no encouragement toasts
+- [ ] Focus card → **Last 7 days** strip updates after sessions
+- [ ] Settings → **5 min break after focus** → countdown after complete (not early stop)
+- [ ] Stop focus early → gentle **abandon** nudge (when tips on)
 
 ## Product / brand
 
