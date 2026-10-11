@@ -3,6 +3,7 @@ import { Alert, Pressable, StyleSheet, Text, TextInput, View } from 'react-nativ
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { MessageComposer } from '../components/chat/MessageComposer';
 import { MessageList } from '../components/chat/MessageList';
+import { THREAD_STORAGE_CAP } from '../domain/chatThreadLimits';
 import { getPersona } from '../domain/personas';
 import type { PersonaId } from '../domain/personas';
 import { isLlmConfigured } from '../services/ai/llmRouting';
@@ -146,6 +147,7 @@ export function ChatScreen({ personaId, onClose }: Props) {
           typing={chatBusy && !search.trim()}
           personaName={persona.name}
           emptySearch={Boolean(search.trim()) && filtered.length === 0}
+          threadAtStorageCap={!search.trim() && messages.length >= THREAD_STORAGE_CAP}
         />
       </View>
 

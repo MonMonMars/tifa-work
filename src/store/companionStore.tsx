@@ -7,6 +7,7 @@ import React, {
   useState,
   type ReactNode,
 } from 'react';
+import { trimThreadForStorage } from '../domain/chatThreadLimits';
 import type { ChatMessage } from '../domain/messages';
 import { createMessage } from '../domain/messages';
 import type { PersonaId } from '../domain/personas';
@@ -28,6 +29,7 @@ import {
   sendCompanionMessage,
 } from '../services/chat/chatService';
 import { deviceTts } from '../services/voice/tts';
+import { hapticOnCheckIn } from '../services/haptics/feedback';
 import { syncCheckInReminderSchedule } from '../services/notifications/checkInReminders';
 import type { NotificationPrefs } from '../services/notifications/types';
 import type { VoiceConfig } from '../services/voice/types';
@@ -74,6 +76,8 @@ interface CompanionStoreValue {
   setThemeMode: (mode: ThemeMode) => void;
   notificationPrefs: NotificationPrefs;
   setNotificationPrefs: (patch: Partial<NotificationPrefs>) => Promise<void>;
+  hasSeenPreChatTips: boolean;
+  markPreChatTipsSeen: () => void;
 }
 
 const CompanionContext = createContext<CompanionStoreValue | null>(null);
@@ -87,8 +91,18 @@ function patchMessageContent(
   const list = histories[personaId] ?? [];
   return {
     ...histories,
-    [personaId]: list.map((m) => (m.id === messageId ? { ...m, content } : m)),
+    [personaId]: trimThreadForStorage(
+      list.map((m) => (m.id === messageId ? { ...m, content } : m)),
+    ),
   };
+}
+
+function withThread(
+  histories: Partial<Record<PersonaId, ChatMessage[]>>,
+  personaId: PersonaId,
+  list: ChatMessage[],
+): Partial<Record<PersonaId, ChatMessage[]>> {
+  return { ...histories, [personaId]: trimThreadForStorage(list) };
 }
 
 export function CompanionProvider({ children }: { children: ReactNode }) {
@@ -156,6 +170,10 @@ export function CompanionProvider({ children }: { children: ReactNode }) {
     await syncCheckInReminderSchedule(nextEnabled);
   }, []);
 
+  const markPreChatTipsSeen = useCallback(() => {
+    setState((s) => ({ ...s, hasSeenPreChatTips: true }));
+  }, []);
+
   const clearThread = useCallback((personaId: PersonaId) => {
     setState((s) => ({
       ...s,
@@ -211,7 +229,7 @@ export function CompanionProvider({ children }: { children: ReactNode }) {
       const greet = createMessage('assistant', persona.greet);
       setState((s) => ({
         ...s,
-        histories: { ...s.histories, [id]: [greet] },
+        histories: withThread(s.histories, id, [greet]),
       }));
       void maybeSpeak(persona.greet, undefined, state.voiceConfig);
     },
@@ -224,6 +242,7 @@ export function CompanionProvider({ children }: { children: ReactNode }) {
     setState((s) => ({ ...s, checkIn: result.state }));
     setCheckInToast(result.message);
     if (!result.alreadyCheckedIn) {
+      void hapticOnCheckIn(true);
       setExpression({
         weights: { joy: 0.55, affection: 0.35, neutral: 0.15 },
         label: 'Check-in · proud',
@@ -279,18 +298,16 @@ export function CompanionProvider({ children }: { children: ReactNode }) {
         streamShellId = assistantShell.id;
         setState((s) => ({
           ...s,
-          histories: {
-            ...s.histories,
-            [personaId]: [...history, userMessage, assistantShell!],
-          },
+          histories: withThread(s.histories, personaId, [
+            ...history,
+            userMessage,
+            assistantShell!,
+          ]),
         }));
       } else {
         setState((s) => ({
           ...s,
-          histories: {
-            ...s.histories,
-            [personaId]: [...history, userMessage],
-          },
+          histories: withThread(s.histories, personaId, [...history, userMessage]),
         }));
       }
 
@@ -322,10 +339,11 @@ export function CompanionProvider({ children }: { children: ReactNode }) {
             const list = s.histories[personaId] ?? [];
             return {
               ...s,
-              histories: {
-                ...s.histories,
-                [personaId]: list.map((m) => (m.id === shellId ? message : m)),
-              },
+              histories: withThread(
+                s.histories,
+                personaId,
+                list.map((m) => (m.id === shellId ? message : m)),
+              ),
             };
           });
           setExpression(expr);
@@ -346,10 +364,10 @@ export function CompanionProvider({ children }: { children: ReactNode }) {
             const current = s.histories[personaId] ?? [];
             return {
               ...s,
-              histories: {
-                ...s.histories,
-                [personaId]: [...current, out.assistantMessage],
-              },
+              histories: withThread(s.histories, personaId, [
+                ...current,
+                out.assistantMessage,
+              ]),
             };
           });
           setExpression(out.expression);
@@ -371,10 +389,11 @@ export function CompanionProvider({ children }: { children: ReactNode }) {
             const list = s.histories[personaId] ?? [];
             return {
               ...s,
-              histories: {
-                ...s.histories,
-                [personaId]: list.map((m) => (m.id === streamShellId ? fallback : m)),
-              },
+              histories: withThread(
+                s.histories,
+                personaId,
+                list.map((m) => (m.id === streamShellId ? fallback : m)),
+              ),
             };
           });
         }
@@ -432,6 +451,8 @@ export function CompanionProvider({ children }: { children: ReactNode }) {
       setThemeMode,
       notificationPrefs: state.notificationPrefs,
       setNotificationPrefs,
+      hasSeenPreChatTips: state.hasSeenPreChatTips,
+      markPreChatTipsSeen,
     }),
     [
       ready,
@@ -458,6 +479,7 @@ export function CompanionProvider({ children }: { children: ReactNode }) {
       clearThread,
       setThemeMode,
       setNotificationPrefs,
+      markPreChatTipsSeen,
     ],
   );
 

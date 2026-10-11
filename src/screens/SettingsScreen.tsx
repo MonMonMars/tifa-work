@@ -3,6 +3,7 @@ import {
   Alert,
   Pressable,
   ScrollView,
+  Share,
   StyleSheet,
   Switch,
   Text,
@@ -11,6 +12,8 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { BANTER_PACK_LABELS, type BanterPack } from '../domain/banterLocale';
+import { getPersona } from '../domain/personas';
+import { formatMemoryExportText } from '../services/memory/exportMemoryNotes';
 import { useCompanionStore } from '../store/companionStore';
 import { inputFontSize } from '../theme/tokens';
 import type { ThemeMode } from '../theme/palettes';
@@ -39,6 +42,7 @@ export function SettingsScreen({ onClose, onWipedAllData }: Props) {
     setThemeMode,
     notificationPrefs,
     setNotificationPrefs,
+    personaId,
   } = useCompanionStore();
   const [memoryDraft, setMemoryDraft] = useState('');
 
@@ -260,6 +264,25 @@ export function SettingsScreen({ onClose, onWipedAllData }: Props) {
           </View>
         )}
 
+        <Pressable
+          style={[styles.memBtn, { marginTop: memoryNotes.length > 0 ? 8 : 0 }]}
+          onPress={() => {
+            const personaName = personaId ? getPersona(personaId).name : undefined;
+            const message = formatMemoryExportText(memoryNotes, { personaName });
+            void Share.share({
+              title: 'Weepo memory notes',
+              message,
+            });
+          }}
+          accessibilityRole="button"
+          accessibilityLabel="Export memory notes as text"
+        >
+          <Text style={styles.memBtnText}>Export notes as text</Text>
+        </Pressable>
+        <Text style={[styles.help, { marginTop: 8, marginBottom: 0 }]}>
+          Opens the system share sheet — plain text only, no API keys.
+        </Text>
+
         <Text style={[styles.section, { marginTop: 28 }]}>Data on this device</Text>
         <Text style={styles.help}>
           Removes chats, memory notes, LLM key, and persona choice from this phone. You will go back
@@ -303,7 +326,7 @@ export function SettingsScreen({ onClose, onWipedAllData }: Props) {
           </Text>
         </View>
 
-        <Text style={styles.footer}>Foundation build · v0.5.0 · tifa-work → weepo port</Text>
+        <Text style={styles.footer}>Foundation build · v0.6.0 · tifa-work → weepo port</Text>
       </ScrollView>
     </SafeAreaView>
   );

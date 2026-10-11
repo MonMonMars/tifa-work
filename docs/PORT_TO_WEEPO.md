@@ -20,7 +20,10 @@ This repo (`tifa-work`) is a **scratchpad / PR host** for the Companion B2C MVP.
 |------|------|
 | `App.tsx` | Root navigation + overlays |
 | `index.ts` | Expo entry |
-| `src/domain/` | Personas, messages, `personaFlavor`, `banterLocale` |
+| `src/domain/` | Personas, messages, `personaFlavor`, `banterLocale`, `chatThreadLimits` |
+| `src/services/memory/` | Share-safe memory export text |
+| `src/services/haptics/` | Send / check-in feedback (`expo-haptics`) |
+| `src/components/onboarding/` | Pre-chat tip sheet |
 | `src/expression/` | Emotion adapter, stage motion, types |
 | `src/navigation/types.ts` | Screen union |
 | `src/theme/` | `tokens`, `palettes`, `useUi` (dark/light) |

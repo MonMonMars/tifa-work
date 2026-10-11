@@ -49,6 +49,8 @@ export interface PersistedState {
   llmConfig: LlmConfig;
   voiceConfig: VoiceConfig;
   hasCompletedOnboarding: boolean;
+  /** First-run tips sheet shown before opening chat. */
+  hasSeenPreChatTips: boolean;
   checkIn: CheckInState;
   themeMode: ThemeMode;
   notificationPrefs: NotificationPrefs;
@@ -61,6 +63,7 @@ export const DEFAULT_PERSISTED: PersistedState = {
   llmConfig: DEFAULT_LLM_CONFIG,
   voiceConfig: DEFAULT_VOICE_CONFIG,
   hasCompletedOnboarding: false,
+  hasSeenPreChatTips: false,
   checkIn: DEFAULT_CHECK_IN,
   themeMode: 'dark',
   notificationPrefs: DEFAULT_NOTIFICATION_PREFS,

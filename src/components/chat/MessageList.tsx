@@ -1,5 +1,6 @@
-import React, { useEffect, useMemo, useRef } from 'react';
+import React, { useCallback, useEffect, useMemo, useRef } from 'react';
 import { FlatList, StyleSheet, Text, View } from 'react-native';
+import { THREAD_STORAGE_CAP } from '../../domain/chatThreadLimits';
 import type { ChatMessage } from '../../domain/messages';
 import { useUi } from '../../theme/useUi';
 import { MessageBubble } from './MessageBubble';
@@ -10,12 +11,27 @@ interface Props {
   typing?: boolean;
   personaName?: string;
   emptySearch?: boolean;
+  threadAtStorageCap?: boolean;
 }
 
-export function MessageList({ messages, personaColor, typing, personaName, emptySearch }: Props) {
+export function MessageList({
+  messages,
+  personaColor,
+  typing,
+  personaName,
+  emptySearch,
+  threadAtStorageCap,
+}: Props) {
   const UI = useUi();
   const styles = useMemo(() => makeStyles(UI), [UI]);
   const listRef = useRef<FlatList<ChatMessage>>(null);
+
+  const renderItem = useCallback(
+    ({ item }: { item: ChatMessage }) => (
+      <MessageBubble message={item} personaColor={personaColor} />
+    ),
+    [personaColor],
+  );
 
   const scrollKey =
     messages.length > 0
@@ -32,8 +48,22 @@ export function MessageList({ messages, personaColor, typing, personaName, empty
       ref={listRef}
       data={messages}
       keyExtractor={(item) => item.id}
+      renderItem={renderItem}
       accessibilityLabel="Chat messages"
+      initialNumToRender={18}
+      maxToRenderPerBatch={12}
+      windowSize={9}
+      removeClippedSubviews
       contentContainerStyle={[styles.content, messages.length === 0 && styles.contentEmpty]}
+      ListHeaderComponent={
+        threadAtStorageCap ? (
+          <View style={styles.capBanner}>
+            <Text style={styles.capText}>
+              Showing the latest {THREAD_STORAGE_CAP} messages — older ones were trimmed on device.
+            </Text>
+          </View>
+        ) : null
+      }
       ListEmptyComponent={
         <View style={styles.empty}>
           <Text style={styles.emptyTitle}>{emptySearch ? 'No matches' : 'Start talking'}</Text>
@@ -44,7 +74,6 @@ export function MessageList({ messages, personaColor, typing, personaName, empty
           </Text>
         </View>
       }
-      renderItem={({ item }) => <MessageBubble message={item} personaColor={personaColor} />}
       ListFooterComponent={
         typing ? (
           <View style={styles.typing}>
@@ -87,5 +116,15 @@ function makeStyles(UI: ReturnType<typeof useUi>) {
     dot2: { opacity: 0.6 },
     dot3: { opacity: 0.4 },
     typingText: { color: UI.textDim, fontSize: 13 },
+    capBanner: {
+      marginHorizontal: 16,
+      marginBottom: 8,
+      padding: 10,
+      borderRadius: 3,
+      backgroundColor: UI.surfaceTop,
+      borderWidth: 1,
+      borderColor: UI.hairline,
+    },
+    capText: { color: UI.textDim, fontSize: 11, lineHeight: 15, textAlign: 'center' },
   });
 }

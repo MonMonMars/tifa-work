@@ -134,7 +134,7 @@ export function GlAvatarView({ accentColor, expression, onFailed }: Props) {
         </View>
       )}
       <View style={styles.badge}>
-        <Text style={styles.badgeText}>GL · {dominant} · VRM TODO</Text>
+        <Text style={styles.badgeText}>GL · {dominant} · placeholder</Text>
       </View>
     </View>
   );

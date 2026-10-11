@@ -10,7 +10,9 @@ import { ChatScreen } from './src/screens/ChatScreen';
 import { HomeScreen } from './src/screens/HomeScreen';
 import { PersonaSelectScreen } from './src/screens/PersonaSelectScreen';
 import { SettingsScreen } from './src/screens/SettingsScreen';
+import { PreChatTipSheet } from './src/components/onboarding/PreChatTipSheet';
 import { TitleScreen } from './src/screens/TitleScreen';
+import { getPersona } from './src/domain/personas';
 import { CompanionProvider, useCompanionStore } from './src/store/companionStore';
 import { useUi } from './src/theme/useUi';
 
@@ -27,11 +29,20 @@ export default function App() {
 }
 
 function AppBody() {
-  const { ready, personaId, selectPersona, expression, setExpressionManual, themeMode } =
-    useCompanionStore();
+  const {
+    ready,
+    personaId,
+    selectPersona,
+    expression,
+    setExpressionManual,
+    themeMode,
+    hasSeenPreChatTips,
+    markPreChatTipsSeen,
+  } = useCompanionStore();
   const UI = useUi();
   const statusStyle = themeMode === 'light' ? 'dark' : 'light';
   const [screen, setScreen] = useState<RootScreen>('title');
+  const [preChatTipsOpen, setPreChatTipsOpen] = useState(false);
 
   const goHome = useCallback(() => setScreen('home'), []);
   const goSelect = useCallback(() => setScreen('personaSelect'), []);
@@ -93,10 +104,26 @@ function AppBody() {
       {/* Home + avatar stage stays mounted under overlays (aiva-companion pattern). */}
       <HomeScreen
         personaId={personaId}
-        onOpenChat={() => setScreen('chat')}
+        onOpenChat={() => {
+          if (!hasSeenPreChatTips) {
+            setPreChatTipsOpen(true);
+            return;
+          }
+          setScreen('chat');
+        }}
         onOpenSettings={() => setScreen('settings')}
         onChangePersona={goSelect}
         onProbeExpression={onProbeExpression}
+      />
+
+      <PreChatTipSheet
+        visible={preChatTipsOpen}
+        personaName={getPersona(personaId).name}
+        onContinue={() => {
+          markPreChatTipsSeen();
+          setPreChatTipsOpen(false);
+          setScreen('chat');
+        }}
       />
 
       {screen === 'chat' && (

@@ -41,4 +41,5 @@ test('mergePersistedState defaults theme and notification prefs', () => {
   const merged = mergePersistedState(null);
   assert.equal(merged.themeMode, 'dark');
   assert.equal(merged.notificationPrefs.checkInRemindersEnabled, false);
+  assert.equal(merged.hasSeenPreChatTips, false);
 });

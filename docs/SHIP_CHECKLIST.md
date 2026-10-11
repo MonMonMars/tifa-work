@@ -19,6 +19,10 @@ Use before TestFlight / App Store. All items assume branch `cursor/companion-b2c
 - [ ] Switch personas — offline copy feels distinct (Mika / Ren / Luna)
 - [ ] Settings → Light theme → readable on Home/Chat/Settings
 - [ ] Settings → Daily check-in reminder (opt-in) → permission prompt; off cancels
+- [ ] First **Open chat** → tip sheet + privacy one-liner → then chat
+- [ ] Settings → **Export notes as text** → share sheet (no API key in payload)
+- [ ] Send message / check-in → light haptic on device (Expo Go / hardware)
+- [ ] Very long thread → cap banner at 400 messages (older trimmed on device)
 
 ## Product / brand
 
@@ -43,7 +47,7 @@ Use before TestFlight / App Store. All items assume branch `cursor/companion-b2c
 - [ ] `@amoji/emotion-core` integration (M5)
 - [ ] Real STT + mic permission flow
 - [ ] React Navigation (optional)
-- [ ] Structured memory UI + export (delete all: Settings → Delete all local data)
+- [ ] Structured memory UI (export text shipped; delete all: Settings → Delete all local data)
 
 ## CI
 
