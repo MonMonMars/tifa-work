@@ -1,3 +1,5 @@
+import type { BanterPack } from '../../domain/banterLocale';
+
 export interface VoiceConfig {
   /** Speak assistant replies with on-device TTS (expo-speech). */
   ttsEnabled: boolean;
@@ -5,12 +7,15 @@ export interface VoiceConfig {
   rate: number;
   /** BCP-47 locale passed to the system voice engine. */
   locale: string;
+  /** Offline banter language pack when LLM is off or fallback. */
+  banterPack: BanterPack;
 }
 
 export const DEFAULT_VOICE_CONFIG: VoiceConfig = {
   ttsEnabled: true,
   rate: 1,
   locale: 'en-US',
+  banterPack: 'bilingual',
 };
 
 export interface SpeakOptions {

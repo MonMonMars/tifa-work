@@ -29,6 +29,7 @@ export function MessageList({ messages, personaColor, typing, personaName }: Pro
       ref={listRef}
       data={messages}
       keyExtractor={(item) => item.id}
+      accessibilityLabel="Chat messages"
       contentContainerStyle={[styles.content, messages.length === 0 && styles.contentEmpty]}
       ListEmptyComponent={
         <View style={styles.empty}>

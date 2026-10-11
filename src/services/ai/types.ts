@@ -1,3 +1,4 @@
+import type { BanterPack } from '../../domain/banterLocale';
 import type { ChatMessage } from '../../domain/messages';
 import type { PersonaId } from '../../domain/personas';
 
@@ -21,6 +22,7 @@ export interface ChatCompletionRequest {
   messages: ChatMessage[];
   userText: string;
   memorySnippet?: string;
+  banterPack?: BanterPack;
 }
 
 export interface ChatCompletionResult {

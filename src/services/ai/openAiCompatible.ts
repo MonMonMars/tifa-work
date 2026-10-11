@@ -88,8 +88,10 @@ export async function completeWithOpenAiOrOffline(
   config: LlmConfig,
   options?: CompletionOptions,
 ): Promise<ChatCompletionResult & { llmError?: string }> {
+  const banterPack = request.banterPack ?? 'en';
+
   if (!isLlmConfigured(config)) {
-    return offlineReply(request);
+    return offlineReply(request, banterPack);
   }
 
   const route = pickReplyRoute(config, options);
@@ -120,7 +122,7 @@ export async function completeWithOpenAiOrOffline(
     return { reply: fetched.content, provider: 'llm' };
   }
 
-  const offline = await offlineReply(request);
+  const offline = await offlineReply(request, banterPack);
   const err = fetched.error ?? 'unknown error';
   return {
     reply: `${offline.reply}\n\n_(LLM unavailable: ${err.slice(0, 120)} — offline reply above.)_`,

@@ -61,7 +61,12 @@ export function ChatScreen({ personaId, onClose }: Props) {
   return (
     <SafeAreaView style={styles.wrap} edges={['top', 'left', 'right', 'bottom']}>
       <View style={styles.header}>
-        <Pressable onPress={onClose} hitSlop={12}>
+        <Pressable
+          onPress={onClose}
+          hitSlop={12}
+          accessibilityRole="button"
+          accessibilityLabel="Back to home"
+        >
           <Text style={styles.back}>← Home</Text>
         </Pressable>
         <View style={styles.headerMid}>
@@ -74,7 +79,12 @@ export function ChatScreen({ personaId, onClose }: Props) {
       </View>
 
       {chatError ? (
-        <Pressable style={styles.banner} onPress={clearChatError}>
+        <Pressable
+          style={styles.banner}
+          onPress={clearChatError}
+          accessibilityRole="button"
+          accessibilityLabel={`LLM issue: ${chatError}. Tap to dismiss.`}
+        >
           <Text style={styles.bannerText}>LLM issue: {chatError}</Text>
         </Pressable>
       ) : null}

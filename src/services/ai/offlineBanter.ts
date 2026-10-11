@@ -1,42 +1,27 @@
+import type { BanterPack } from '../../domain/banterLocale';
 import type { PersonaId } from '../../domain/personas';
 import { getPersona } from '../../domain/personas';
 import type { ChatCompletionRequest, ChatCompletionResult } from './types';
+import { buildOfflineLine } from './offlineBanterPacks';
 
-const FOLLOW_UPS = [
-  'What would feel most helpful right now — venting or planning?',
-  'Tell me one small thing that went okay today.',
-  'Want to keep going, or switch topics?',
-];
-
-const REPLY_TEMPLATES: Record<PersonaId, string[]> = {
-  mika: [
-    "I hear you. [emotion:joy=0.5] That sounds like a lot to carry.",
-    "Thanks for sharing that with me — I'm right here.",
-    "Mmm, interesting. What part of it bothers you most?",
-  ],
-  ren: [
-    "Got it. No judgment — just us talking.",
-    "That makes sense. What do you wish had gone differently?",
-    "I'm listening. Take your time.",
-  ],
-  luna: [
-    "Let's slow down for a second. What's the core worry?",
-    "We can break it into one next step if you want.",
-    "Noted. What would 'good enough' look like today?",
-  ],
-};
-
-function pick<T>(arr: T[]): T {
-  return arr[Math.floor(Math.random() * arr.length)]!;
+function delay(ms: number): Promise<void> {
+  return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
-export async function offlineReply(request: ChatCompletionRequest): Promise<ChatCompletionResult> {
-  const persona = getPersona(request.personaId);
-  const pool = REPLY_TEMPLATES[request.personaId];
-  const line = pick(pool);
-  const follow = pick(FOLLOW_UPS);
+function seedFromRequest(request: ChatCompletionRequest): number {
+  const base = request.userText.length + request.personaId.charCodeAt(0);
+  return base + (request.messages.length % 7);
+}
 
-  await delay(350 + Math.random() * 400);
+export async function offlineReply(
+  request: ChatCompletionRequest,
+  banterPack: BanterPack = 'en',
+): Promise<ChatCompletionResult> {
+  const persona = getPersona(request.personaId);
+  const seed = seedFromRequest(request);
+  const { line, followUp } = buildOfflineLine(request.personaId, banterPack, seed);
+
+  await delay(350 + (seed % 400));
 
   const memoryNote =
     request.memorySnippet && request.memorySnippet.length > 0
@@ -44,11 +29,7 @@ export async function offlineReply(request: ChatCompletionRequest): Promise<Chat
       : '';
 
   return {
-    reply: `${persona.emoji} ${line}${memoryNote}\n\n${follow}`,
+    reply: `${persona.emoji} ${line}${memoryNote}\n\n${followUp}`,
     provider: 'offline',
   };
-}
-
-function delay(ms: number): Promise<void> {
-  return new Promise((resolve) => setTimeout(resolve, ms));
 }

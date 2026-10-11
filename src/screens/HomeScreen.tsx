@@ -3,6 +3,7 @@ import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { AvatarStage } from '../components/avatar/AvatarStage';
 import { ExpressionPanel } from '../components/avatar/ExpressionPanel';
+import { CheckInCard } from '../components/home/CheckInCard';
 import { getPersona } from '../domain/personas';
 import type { PersonaId } from '../domain/personas';
 import type { ExpressionSnapshot } from '../expression/types';
@@ -25,22 +26,46 @@ export function HomeScreen({
   onProbeExpression,
 }: Props) {
   const persona = useMemo(() => getPersona(personaId), [personaId]);
-  const { isSpeaking, expression } = useCompanionStore();
+  const {
+    isSpeaking,
+    expression,
+    checkIn,
+    checkInToast,
+    performCheckIn,
+    clearCheckInToast,
+  } = useCompanionStore();
 
   return (
     <SafeAreaView style={styles.wrap} edges={['top', 'left', 'right']}>
       <View style={styles.topBar}>
-        <Pressable onPress={onChangePersona} hitSlop={12}>
+        <Pressable
+          onPress={onChangePersona}
+          hitSlop={12}
+          accessibilityRole="button"
+          accessibilityLabel={`Companion ${persona.name}, change persona`}
+        >
           <Text style={styles.personaBtn}>
             {persona.emoji} {persona.name}
           </Text>
         </Pressable>
         <View style={styles.topActions}>
-          <Pressable onPress={onOpenSettings} style={styles.iconBtn}>
+          <Pressable
+            onPress={onOpenSettings}
+            style={styles.iconBtn}
+            accessibilityRole="button"
+            accessibilityLabel="Open settings"
+          >
             <Text style={styles.iconBtnText}>⚙</Text>
           </Pressable>
         </View>
       </View>
+
+      <CheckInCard
+        checkIn={checkIn}
+        toast={checkInToast}
+        onCheckIn={performCheckIn}
+        onDismissToast={clearCheckInToast}
+      />
 
       <View style={styles.stage}>
         <AvatarStage personaId={personaId} expression={expression} />
@@ -54,7 +79,12 @@ export function HomeScreen({
       />
 
       <View style={styles.bottom}>
-        <Pressable style={styles.chatCta} onPress={onOpenChat}>
+        <Pressable
+          style={styles.chatCta}
+          onPress={onOpenChat}
+          accessibilityRole="button"
+          accessibilityLabel="Open chat"
+        >
           <Text style={styles.chatCtaText}>Open chat</Text>
         </Pressable>
         <Text style={styles.hint}>

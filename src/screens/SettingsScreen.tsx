@@ -10,8 +10,11 @@ import {
   View,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { BANTER_PACK_LABELS, type BanterPack } from '../domain/banterLocale';
 import { useCompanionStore } from '../store/companionStore';
 import { UI, inputFontSize } from '../theme/tokens';
+
+const BANTER_OPTIONS: BanterPack[] = ['en', 'zh-HK', 'bilingual'];
 
 interface Props {
   onClose: () => void;
@@ -33,10 +36,12 @@ export function SettingsScreen({ onClose, onWipedAllData }: Props) {
   return (
     <SafeAreaView style={styles.wrap} edges={['top', 'left', 'right', 'bottom']}>
       <View style={styles.header}>
-        <Pressable onPress={onClose}>
+        <Pressable onPress={onClose} accessibilityRole="button" accessibilityLabel="Done, close settings">
           <Text style={styles.back}>Done</Text>
         </Pressable>
-        <Text style={styles.title}>Settings</Text>
+        <Text style={styles.title} accessibilityRole="header">
+          Settings
+        </Text>
         <View style={{ width: 48 }} />
       </View>
 
@@ -52,6 +57,7 @@ export function SettingsScreen({ onClose, onWipedAllData }: Props) {
           <Switch
             value={llmConfig.enabled}
             onValueChange={(enabled) => setLlmConfig({ enabled })}
+            accessibilityLabel="Enable LLM"
           />
         </View>
 
@@ -63,6 +69,7 @@ export function SettingsScreen({ onClose, onWipedAllData }: Props) {
           autoCapitalize="none"
           value={llmConfig.baseUrl}
           onChangeText={(baseUrl) => setLlmConfig({ baseUrl })}
+          accessibilityLabel="LLM base URL"
         />
 
         <Text style={styles.fieldLabel}>API key</Text>
@@ -74,6 +81,7 @@ export function SettingsScreen({ onClose, onWipedAllData }: Props) {
           autoCapitalize="none"
           value={llmConfig.apiKey}
           onChangeText={(apiKey) => setLlmConfig({ apiKey })}
+          accessibilityLabel="LLM API key"
         />
 
         <Text style={styles.fieldLabel}>Model</Text>
@@ -91,6 +99,7 @@ export function SettingsScreen({ onClose, onWipedAllData }: Props) {
           <Switch
             value={llmConfig.streamEnabled}
             onValueChange={(streamEnabled) => setLlmConfig({ streamEnabled })}
+            accessibilityLabel="Stream LLM tokens"
           />
         </View>
 
@@ -105,7 +114,34 @@ export function SettingsScreen({ onClose, onWipedAllData }: Props) {
           <Switch
             value={voiceConfig.ttsEnabled}
             onValueChange={(ttsEnabled) => setVoiceConfig({ ttsEnabled })}
+            accessibilityLabel="Speak assistant replies"
           />
+        </View>
+
+        <Text style={styles.fieldLabel}>Offline banter language</Text>
+        <Text style={styles.help}>
+          Used when LLM is off or falls back. No network — bundled copy only.
+        </Text>
+        <View style={styles.rateRow}>
+          {BANTER_OPTIONS.map((pack) => (
+            <Pressable
+              key={pack}
+              style={[styles.rateChip, voiceConfig.banterPack === pack && styles.rateChipOn]}
+              onPress={() => setVoiceConfig({ banterPack: pack })}
+              accessibilityRole="button"
+              accessibilityLabel={`Banter language ${BANTER_PACK_LABELS[pack]}`}
+              accessibilityState={{ selected: voiceConfig.banterPack === pack }}
+            >
+              <Text
+                style={[
+                  styles.rateChipText,
+                  voiceConfig.banterPack === pack && styles.rateChipTextOn,
+                ]}
+              >
+                {pack === 'zh-HK' ? '廣' : pack === 'bilingual' ? 'EN+廣' : 'EN'}
+              </Text>
+            </Pressable>
+          ))}
         </View>
 
         <Text style={styles.fieldLabel}>Speech rate (0.75 – 1.25)</Text>
@@ -225,7 +261,7 @@ export function SettingsScreen({ onClose, onWipedAllData }: Props) {
           </Text>
         </View>
 
-        <Text style={styles.footer}>Foundation build · v0.3.2 · tifa-work → weepo port</Text>
+        <Text style={styles.footer}>Foundation build · v0.4.0 · tifa-work → weepo port</Text>
       </ScrollView>
     </SafeAreaView>
   );

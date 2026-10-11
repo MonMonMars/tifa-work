@@ -4,6 +4,7 @@ import type { PersonaId } from '../../domain/personas';
 import { parseEmotionTagFromReply } from '../../expression/emotionAdapter';
 import { pickEmotionTag } from '../../expression/stageMotion';
 import type { ExpressionSnapshot } from '../../expression/types';
+import type { BanterPack } from '../../domain/banterLocale';
 import type { CompletionOptions, LlmConfig } from '../ai/types';
 import { openAiCompatibleProvider } from '../ai/llmProviderStub';
 
@@ -13,6 +14,7 @@ export interface SendMessageInput {
   history: ChatMessage[];
   llmConfig: LlmConfig;
   memorySnippet?: string;
+  banterPack?: BanterPack;
   completionOptions?: CompletionOptions;
 }
 
@@ -33,6 +35,7 @@ export async function sendCompanionMessage(input: SendMessageInput): Promise<Sen
       messages: input.history,
       userText: input.userText,
       memorySnippet: input.memorySnippet,
+      banterPack: input.banterPack,
     },
     input.llmConfig,
     input.completionOptions,

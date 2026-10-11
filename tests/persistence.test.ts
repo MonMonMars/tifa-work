@@ -29,3 +29,10 @@ test('mergePersistedState preserves memory notes array', () => {
   const merged = mergePersistedState({ memoryNotes: ['hello', 'world'] });
   assert.deepEqual(merged.memoryNotes, ['hello', 'world']);
 });
+
+test('mergePersistedState merges check-in defaults', () => {
+  const merged = mergePersistedState({
+    checkIn: { lastCheckInKey: '2026-10-11', currentStreak: 2, longestStreak: 2 },
+  });
+  assert.equal(merged.checkIn.currentStreak, 2);
+});

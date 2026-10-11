@@ -1,6 +1,18 @@
 import type { ChatMessage } from '../domain/messages';
 import type { PersonaId } from '../domain/personas';
 import type { LlmConfig } from '../services/ai/types';
+/** Duplicated shape — keep aligned with `services/checkIn/streak.ts` (avoid Node ESM import chain). */
+export interface CheckInState {
+  lastCheckInKey: string | null;
+  currentStreak: number;
+  longestStreak: number;
+}
+
+const DEFAULT_CHECK_IN: CheckInState = {
+  lastCheckInKey: null,
+  currentStreak: 0,
+  longestStreak: 0,
+};
 import type { VoiceConfig } from '../services/voice/types';
 
 /** Keep in sync with `DEFAULT_VOICE_CONFIG` in `services/voice/types`. */
@@ -8,6 +20,7 @@ const DEFAULT_VOICE_CONFIG: VoiceConfig = {
   ttsEnabled: true,
   rate: 1,
   locale: 'en-US',
+  banterPack: 'bilingual',
 };
 
 export const DEFAULT_LLM_CONFIG: LlmConfig = {
@@ -25,6 +38,7 @@ export interface PersistedState {
   llmConfig: LlmConfig;
   voiceConfig: VoiceConfig;
   hasCompletedOnboarding: boolean;
+  checkIn: CheckInState;
 }
 
 export const DEFAULT_PERSISTED: PersistedState = {
@@ -34,6 +48,7 @@ export const DEFAULT_PERSISTED: PersistedState = {
   llmConfig: DEFAULT_LLM_CONFIG,
   voiceConfig: DEFAULT_VOICE_CONFIG,
   hasCompletedOnboarding: false,
+  checkIn: DEFAULT_CHECK_IN,
 };
 
 /** Pure merge for defaults — safe to unit test without AsyncStorage. */
@@ -46,5 +61,6 @@ export function mergePersistedState(parsed: Partial<PersistedState> | null | und
     ...parsed,
     llmConfig: { ...DEFAULT_LLM_CONFIG, ...parsed.llmConfig },
     voiceConfig: { ...DEFAULT_VOICE_CONFIG, ...parsed.voiceConfig },
+    checkIn: { ...DEFAULT_CHECK_IN, ...parsed.checkIn },
   };
 }

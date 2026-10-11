@@ -11,6 +11,8 @@ Use before TestFlight / App Store. All items assume branch `cursor/companion-b2c
 - [ ] Chat offline reply + expression morph bars move
 - [ ] Settings → enable TTS → hear assistant reply + first-open greeting when chat is empty
 - [ ] Settings → Delete all local data → returns to title, storage empty
+- [ ] Home → Check in → streak increments; same-day is idempotent
+- [ ] Settings → Offline banter EN / 廣 / EN+廣 → offline chat copy changes
 - [ ] Settings → BYO LLM (your key) → chat uses provider; toggle stream on/off
 - [ ] LLM wrong key → fallback offline + banner
 

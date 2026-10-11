@@ -59,6 +59,8 @@ export function MessageComposer({ busy, busyLabel = 'Sending…', onSend }: Prop
           maxLength={2000}
           onSubmitEditing={submit}
           blurOnSubmit={false}
+          accessibilityLabel="Message text"
+          accessibilityHint="Type a message to your companion"
         />
         <Pressable
           style={({ pressed }) => [
@@ -68,6 +70,9 @@ export function MessageComposer({ busy, busyLabel = 'Sending…', onSend }: Prop
           ]}
           onPress={submit}
           disabled={busy || !text.trim()}
+          accessibilityRole="button"
+          accessibilityLabel={busy ? busyLabel : 'Send message'}
+          accessibilityState={{ disabled: busy || !text.trim() }}
         >
           <Text style={styles.sendText}>{busy ? busyLabel : 'Send'}</Text>
         </Pressable>

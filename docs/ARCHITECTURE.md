@@ -32,9 +32,19 @@ Title → PersonaSelect → Home (mounted)
 3. Buffered/offline: single completion  
 4. Failure → offline fallback + banner; stream errors replace shell with apology bubble  
 
-## Expression → avatar
+## Expression → avatar (M5)
 
-`parseEmotionTagFromReply` / user text → `ExpressionSnapshot` → `stageMotionFromWeights()` drives GL motion + morph bars.
+`emotionAdapter.ts` (M5) blends **multiple** EN + 廣東話 keyword hints → weights.  
+`parseEmotionTagFromReply` merges LLM `[emotion:…]` tags with reply text heuristics.  
+`ExpressionSnapshot` → `stageMotionFromWeights()` + `weightsToMorphTargets()` (incl. **Think** morph).
+
+## Check-in / streak (stub)
+
+`services/checkIn/streak.ts` — local calendar streak, persisted in AsyncStorage. Home **Check in** button.
+
+## Offline banter locales
+
+`offlineBanterPacks.ts` — `en` | `zh-HK` | `bilingual` (Settings → Offline banter language). No external APIs.
 
 ## Voice (M4)
 

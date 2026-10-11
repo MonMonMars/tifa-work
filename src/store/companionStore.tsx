@@ -18,6 +18,11 @@ import { isLlmConfigured } from '../services/ai/llmRouting';
 import { openAiCompatibleProvider } from '../services/ai/llmProviderStub';
 import type { LlmConfig } from '../services/ai/types';
 import {
+  applyCheckIn,
+  localDateKey,
+  type CheckInState,
+} from '../services/checkIn/streak';
+import {
   applyReplyToAssistant,
   createStreamingAssistantShell,
   sendCompanionMessage,
@@ -46,6 +51,10 @@ interface CompanionStoreValue {
   chatError: string | null;
   lastChatProvider: ChatBrainMode | null;
   isSpeaking: boolean;
+  checkIn: CheckInState;
+  checkInToast: string | null;
+  performCheckIn: () => void;
+  clearCheckInToast: () => void;
   selectPersona: (id: PersonaId) => void;
   setLlmConfig: (patch: Partial<LlmConfig>) => void;
   setVoiceConfig: (patch: Partial<VoiceConfig>) => void;
@@ -85,6 +94,7 @@ export function CompanionProvider({ children }: { children: ReactNode }) {
   const [chatError, setChatError] = useState<string | null>(null);
   const [lastChatProvider, setLastChatProvider] = useState<ChatBrainMode | null>(null);
   const [isSpeaking, setIsSpeaking] = useState(false);
+  const [checkInToast, setCheckInToast] = useState<string | null>(null);
 
   useEffect(() => {
     let alive = true;
@@ -178,6 +188,23 @@ export function CompanionProvider({ children }: { children: ReactNode }) {
     [maybeSpeak, state.histories, state.voiceConfig],
   );
 
+  const performCheckIn = useCallback(() => {
+    const today = localDateKey();
+    const result = applyCheckIn(state.checkIn, today);
+    setState((s) => ({ ...s, checkIn: result.state }));
+    setCheckInToast(result.message);
+    if (!result.alreadyCheckedIn) {
+      setExpression({
+        weights: { joy: 0.55, affection: 0.35, neutral: 0.15 },
+        label: 'Check-in · proud',
+        source: 'manual',
+        updatedAt: Date.now(),
+      });
+    }
+  }, [state.checkIn]);
+
+  const clearCheckInToast = useCallback(() => setCheckInToast(null), []);
+
   const wipeAllLocalData = useCallback(async () => {
     await stopSpeaking();
     await clearPersistedState();
@@ -187,6 +214,7 @@ export function CompanionProvider({ children }: { children: ReactNode }) {
     setLastChatProvider(null);
     setChatBusy(false);
     setIsSpeaking(false);
+    setCheckInToast(null);
   }, [stopSpeaking]);
 
   const sendMessage = useCallback(
@@ -244,6 +272,7 @@ export function CompanionProvider({ children }: { children: ReactNode }) {
               messages: history,
               userText: trimmed,
               memorySnippet,
+              banterPack: state.voiceConfig.banterPack,
             },
             state.llmConfig,
             {
@@ -279,6 +308,7 @@ export function CompanionProvider({ children }: { children: ReactNode }) {
             history,
             llmConfig: state.llmConfig,
             memorySnippet,
+            banterPack: state.voiceConfig.banterPack,
           });
 
           setState((s) => {
@@ -351,6 +381,10 @@ export function CompanionProvider({ children }: { children: ReactNode }) {
       chatError,
       lastChatProvider,
       isSpeaking,
+      checkIn: state.checkIn,
+      checkInToast,
+      performCheckIn,
+      clearCheckInToast,
       selectPersona,
       setLlmConfig,
       setVoiceConfig,
@@ -371,6 +405,9 @@ export function CompanionProvider({ children }: { children: ReactNode }) {
       chatError,
       lastChatProvider,
       isSpeaking,
+      checkInToast,
+      performCheckIn,
+      clearCheckInToast,
       selectPersona,
       setLlmConfig,
       setVoiceConfig,

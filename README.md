@@ -14,7 +14,7 @@ Node **22+** for `npm test`. Open with **Expo Go** (QR) or `npm run ios` on macO
 | Script | Purpose |
 |--------|---------|
 | `npm run typecheck` | TypeScript |
-| `npm test` | Unit tests (22) — emotion, memory, persistence merge, LLM routing, SSE, voice |
+| `npm test` | Unit tests — emotion M5, check-in, offline banter locales, LLM, SSE |
 
 ## What’s in this MVP foundation
 
@@ -22,7 +22,10 @@ Node **22+** for `npm test`. Open with **Expo Go** (QR) or `npm run ios` on macO
 - **Chat:** Offline banter default; **BYO OpenAI-compatible** `/chat/completions`; optional **SSE streaming** (Settings)  
 - **Memory:** Device notes + auto snippets → system prompt (8-turn cap)  
 - **Avatar:** expo-gl placeholder mesh + emotion-driven motion + morph bars (VRM: `docs/VRM_AVATAR.md`)  
-- **Voice:** expo-speech TTS for replies; mic = STT stub (`docs/VOICE.md`)  
+- **Voice:** expo-speech TTS; offline **EN / 廣東話 / bilingual** banter (`Settings`)  
+- **Check-in:** daily streak stub on Home (local only)  
+- **M5 expression:** blended emotion hints → morph + stage motion  
+- **EAS:** stub `eas.json` + `docs/EAS_TESTFLIGHT.md`  
 - **Privacy copy:** Settings + `docs/PRIVACY.md`  
 
 ## BYO LLM
@@ -52,6 +55,7 @@ Quick smoke:
 | [VRM_AVATAR.md](./docs/VRM_AVATAR.md) | When you add `assets/models/*.vrm` |
 | [SHIP_CHECKLIST.md](./docs/SHIP_CHECKLIST.md) | Pre-release checklist |
 | [PORT_TO_WEEPO.md](./docs/PORT_TO_WEEPO.md) | Copy this foundation into `MonMonMars/weepo` |
+| [EAS_TESTFLIGHT.md](./docs/EAS_TESTFLIGHT.md) | EAS build + TestFlight when ready |
 
 ## iOS
 
