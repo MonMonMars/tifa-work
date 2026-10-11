@@ -18,7 +18,9 @@ export interface ChatCompletionRequest {
 
 export interface ChatCompletionResult {
   reply: string;
-  provider: 'offline' | 'llm' | 'stub';
+  provider: 'offline' | 'llm';
+  /** Set when LLM was configured but failed and offline fallback was used. */
+  llmError?: string;
 }
 
 export interface LlmProvider {

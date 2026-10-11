@@ -18,9 +18,9 @@ export function TitleScreen({ ready, onEnter }: Props) {
   return (
     <View style={styles.wrap}>
       <StatusBar style="light" />
-      <Text style={styles.kicker}>MON MON · COMPANION B2C</Text>
-      <Text style={styles.title}>Companion</Text>
-      <Text style={styles.sub}>AI avatar for chat & companionship</Text>
+      <Text style={styles.kicker}>MON MON · WEEPO · COMPANION B2C</Text>
+      <Text style={styles.title}>Weepo</Text>
+      <Text style={styles.sub}>AI avatar companion for chat & companionship</Text>
       {!ready ? (
         <ActivityIndicator color={UI.accent} style={{ marginTop: 32 }} />
       ) : (

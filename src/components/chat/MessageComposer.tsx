@@ -12,10 +12,11 @@ import { UI, inputFontSize } from '../../theme/tokens';
 
 interface Props {
   busy: boolean;
+  busyLabel?: string;
   onSend: (text: string) => void;
 }
 
-export function MessageComposer({ busy, onSend }: Props) {
+export function MessageComposer({ busy, busyLabel = 'Sending…', onSend }: Props) {
   const [text, setText] = useState('');
 
   const submit = () => {
@@ -48,7 +49,7 @@ export function MessageComposer({ busy, onSend }: Props) {
           onPress={submit}
           disabled={busy || !text.trim()}
         >
-          <Text style={styles.sendText}>Send</Text>
+          <Text style={styles.sendText}>{busy ? busyLabel : 'Send'}</Text>
         </Pressable>
       </View>
     </KeyboardAvoidingView>

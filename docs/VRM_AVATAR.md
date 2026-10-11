@@ -1,9 +1,11 @@
 # VRM avatar swap ticket (M2)
 
-## Current (v0.1)
+## Current
 
-- `AvatarPlaceholder` renders persona emoji + morph target bars driven by `ExpressionSnapshot`.
-- Expression pipeline: `emotionAdapter` → `weightsToMorphTargets()` → UI bars.
+- `AvatarStage` hosts **`GlAvatarView`** (expo-gl + Three.js procedural mesh) with expression-driven motion.
+- `MorphTargetPanel` shows morph target bars from `ExpressionSnapshot` (stand-in until VRM blend shapes).
+- Static emoji fallback if WebGL fails.
+- **No licensed VRM file in repo yet** — add under `assets/models/` when ready.
 
 ## Target
 

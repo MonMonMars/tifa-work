@@ -3,7 +3,7 @@ import { createMessage } from '../../domain/messages';
 import type { PersonaId } from '../../domain/personas';
 import { parseEmotionTagFromReply } from '../../expression/emotionAdapter';
 import type { ExpressionSnapshot } from '../../expression/types';
-import { llmProviderStub } from '../ai/llmProviderStub';
+import { openAiCompatibleProvider } from '../ai/llmProviderStub';
 import type { LlmConfig } from '../ai/types';
 
 export interface SendMessageInput {
@@ -18,12 +18,14 @@ export interface SendMessageOutput {
   userMessage: ChatMessage;
   assistantMessage: ChatMessage;
   expression: ExpressionSnapshot;
+  provider: 'offline' | 'llm';
+  llmError?: string;
 }
 
 export async function sendCompanionMessage(input: SendMessageInput): Promise<SendMessageOutput> {
   const userMessage = createMessage('user', input.userText.trim());
 
-  const result = await llmProviderStub.complete(
+  const result = await openAiCompatibleProvider.complete(
     {
       personaId: input.personaId,
       messages: input.history,
@@ -45,5 +47,11 @@ export async function sendCompanionMessage(input: SendMessageInput): Promise<Sen
     updatedAt: Date.now(),
   };
 
-  return { userMessage, assistantMessage, expression };
+  return {
+    userMessage,
+    assistantMessage,
+    expression,
+    provider: result.provider,
+    llmError: result.llmError,
+  };
 }

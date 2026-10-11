@@ -31,10 +31,10 @@ export function SettingsScreen({ onClose }: Props) {
       </View>
 
       <ScrollView contentContainerStyle={styles.content}>
-        <Text style={styles.section}>Brain (BYO · stubbed)</Text>
+        <Text style={styles.section}>Brain (BYO OpenAI-compatible)</Text>
         <Text style={styles.help}>
-          Keys stay on device only. Network LLM calls are not implemented in v0.1 — offline banter
-          is the default.
+          Keys stay on device only (AsyncStorage). When enabled with a valid base URL + API key,
+          Weepo calls your provider's /chat/completions. Otherwise replies use offline banter.
         </Text>
 
         <View style={styles.row}>

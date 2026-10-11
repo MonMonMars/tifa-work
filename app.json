@@ -1,6 +1,6 @@
 {
   "expo": {
-    "name": "Companion",
+    "name": "Weepo",
     "slug": "companion-b2c",
     "version": "0.1.0",
     "orientation": "portrait",
@@ -31,6 +31,9 @@
     },
     "web": {
       "favicon": "./assets/favicon.png"
-    }
+    },
+    "plugins": [
+      "expo-asset"
+    ]
   }
 }

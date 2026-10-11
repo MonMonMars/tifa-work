@@ -1,7 +1,7 @@
 import React, { useMemo } from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { AvatarPlaceholder } from '../components/avatar/AvatarPlaceholder';
+import { AvatarStage } from '../components/avatar/AvatarStage';
 import { ExpressionPanel } from '../components/avatar/ExpressionPanel';
 import { getPersona } from '../domain/personas';
 import type { PersonaId } from '../domain/personas';
@@ -43,7 +43,7 @@ export function HomeScreen({
       </View>
 
       <View style={styles.stage}>
-        <AvatarPlaceholder personaId={personaId} expression={expression} />
+        <AvatarStage personaId={personaId} expression={expression} />
       </View>
 
       <ExpressionPanel
