@@ -12,7 +12,7 @@ import { PersonaSelectScreen } from './src/screens/PersonaSelectScreen';
 import { SettingsScreen } from './src/screens/SettingsScreen';
 import { TitleScreen } from './src/screens/TitleScreen';
 import { CompanionProvider, useCompanionStore } from './src/store/companionStore';
-import { UI } from './src/theme/tokens';
+import { useUi } from './src/theme/useUi';
 
 export default function App() {
   return (
@@ -27,7 +27,10 @@ export default function App() {
 }
 
 function AppBody() {
-  const { ready, personaId, selectPersona, expression, setExpressionManual } = useCompanionStore();
+  const { ready, personaId, selectPersona, expression, setExpressionManual, themeMode } =
+    useCompanionStore();
+  const UI = useUi();
+  const statusStyle = themeMode === 'light' ? 'dark' : 'light';
   const [screen, setScreen] = useState<RootScreen>('title');
 
   const goHome = useCallback(() => setScreen('home'), []);
@@ -65,7 +68,7 @@ function AppBody() {
     return (
       <>
         <TitleScreen ready returning={Boolean(personaId)} onEnter={onTitleEnter} />
-        <StatusBar style="light" />
+        <StatusBar style={statusStyle} />
       </>
     );
   }
@@ -79,14 +82,14 @@ function AppBody() {
           initialSelected={personaId ?? 'mika'}
           mode={personaId ? 'switch' : 'onboarding'}
         />
-        <StatusBar style="light" />
+        <StatusBar style={statusStyle} />
       </>
     );
   }
 
   return (
-    <View style={styles.root}>
-      <StatusBar style="light" />
+    <View style={[styles.root, { backgroundColor: UI.bg }]}>
+      <StatusBar style={statusStyle} />
       {/* Home + avatar stage stays mounted under overlays (aiva-companion pattern). */}
       <HomeScreen
         personaId={personaId}
@@ -97,13 +100,13 @@ function AppBody() {
       />
 
       {screen === 'chat' && (
-        <View style={styles.overlay}>
+        <View style={[styles.overlay, { backgroundColor: UI.bg }]}>
           <ChatScreen personaId={personaId} onClose={goHome} />
         </View>
       )}
 
       {screen === 'settings' && (
-        <View style={styles.overlay}>
+        <View style={[styles.overlay, { backgroundColor: UI.bg }]}>
           <SettingsScreen onClose={goHome} onWipedAllData={() => setScreen('title')} />
         </View>
       )}
@@ -112,9 +115,8 @@ function AppBody() {
 }
 
 const styles = StyleSheet.create({
-  root: { flex: 1, backgroundColor: UI.bg },
+  root: { flex: 1 },
   overlay: {
     ...StyleSheet.absoluteFill,
-    backgroundColor: UI.bg,
   },
 });

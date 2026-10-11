@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useMemo, useState } from 'react';
 import {
   Alert,
   Pressable,
@@ -12,7 +12,9 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { BANTER_PACK_LABELS, type BanterPack } from '../domain/banterLocale';
 import { useCompanionStore } from '../store/companionStore';
-import { UI, inputFontSize } from '../theme/tokens';
+import { inputFontSize } from '../theme/tokens';
+import type { ThemeMode } from '../theme/palettes';
+import { useUi } from '../theme/useUi';
 
 const BANTER_OPTIONS: BanterPack[] = ['en', 'zh-HK', 'bilingual'];
 
@@ -22,6 +24,9 @@ interface Props {
 }
 
 export function SettingsScreen({ onClose, onWipedAllData }: Props) {
+  const UI = useUi();
+  const styles = useMemo(() => makeStyles(UI), [UI]);
+
   const {
     llmConfig,
     setLlmConfig,
@@ -30,6 +35,10 @@ export function SettingsScreen({ onClose, onWipedAllData }: Props) {
     memoryNotes,
     rememberNote,
     wipeAllLocalData,
+    themeMode,
+    setThemeMode,
+    notificationPrefs,
+    setNotificationPrefs,
   } = useCompanionStore();
   const [memoryDraft, setMemoryDraft] = useState('');
 
@@ -189,6 +198,39 @@ export function SettingsScreen({ onClose, onWipedAllData }: Props) {
           onChangeText={(locale) => setVoiceConfig({ locale })}
         />
 
+        <Text style={[styles.section, { marginTop: 24 }]}>Appearance</Text>
+        <View style={styles.rateRow}>
+          {(['dark', 'light'] as ThemeMode[]).map((mode) => (
+            <Pressable
+              key={mode}
+              style={[styles.rateChip, themeMode === mode && styles.rateChipOn]}
+              onPress={() => setThemeMode(mode)}
+              accessibilityRole="button"
+              accessibilityLabel={`${mode} theme`}
+              accessibilityState={{ selected: themeMode === mode }}
+            >
+              <Text style={[styles.rateChipText, themeMode === mode && styles.rateChipTextOn]}>
+                {mode === 'dark' ? 'Dark' : 'Light'}
+              </Text>
+            </Pressable>
+          ))}
+        </View>
+
+        <Text style={[styles.section, { marginTop: 24 }]}>Reminders</Text>
+        <Text style={styles.help}>
+          Optional local nudge once per day (~10:00 device time). Off by default — see docs/NOTIFICATIONS.md.
+        </Text>
+        <View style={styles.row}>
+          <Text style={styles.label}>Daily check-in reminder</Text>
+          <Switch
+            value={notificationPrefs.checkInRemindersEnabled}
+            onValueChange={(checkInRemindersEnabled) =>
+              void setNotificationPrefs({ checkInRemindersEnabled })
+            }
+            accessibilityLabel="Daily check-in reminder"
+          />
+        </View>
+
         <Text style={[styles.section, { marginTop: 24 }]}>Device memory (stub)</Text>
         <TextInput
           style={[styles.input, styles.memoryInput]}
@@ -261,13 +303,14 @@ export function SettingsScreen({ onClose, onWipedAllData }: Props) {
           </Text>
         </View>
 
-        <Text style={styles.footer}>Foundation build · v0.4.0 · tifa-work → weepo port</Text>
+        <Text style={styles.footer}>Foundation build · v0.5.0 · tifa-work → weepo port</Text>
       </ScrollView>
     </SafeAreaView>
   );
 }
 
-const styles = StyleSheet.create({
+function makeStyles(UI: ReturnType<typeof useUi>) {
+  return StyleSheet.create({
   wrap: { flex: 1, backgroundColor: UI.bg },
   header: {
     flexDirection: 'row',
@@ -354,4 +397,5 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     lineHeight: 16,
   },
-});
+  });
+}

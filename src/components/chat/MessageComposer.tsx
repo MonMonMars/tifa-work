@@ -10,7 +10,8 @@ import {
   View,
 } from 'react-native';
 import { sttStubProvider } from '../../services/voice/sttStub';
-import { UI, inputFontSize } from '../../theme/tokens';
+import { inputFontSize } from '../../theme/tokens';
+import { useUi } from '../../theme/useUi';
 
 interface Props {
   busy: boolean;
@@ -19,6 +20,8 @@ interface Props {
 }
 
 export function MessageComposer({ busy, busyLabel = 'Sending…', onSend }: Props) {
+  const UI = useUi();
+  const styles = React.useMemo(() => makeStyles(UI), [UI]);
   const [text, setText] = useState('');
 
   const submit = () => {
@@ -81,7 +84,8 @@ export function MessageComposer({ busy, busyLabel = 'Sending…', onSend }: Prop
   );
 }
 
-const styles = StyleSheet.create({
+function makeStyles(UI: ReturnType<typeof useUi>) {
+  return StyleSheet.create({
   bar: {
     flexDirection: 'row',
     alignItems: 'flex-end',
@@ -123,4 +127,5 @@ const styles = StyleSheet.create({
   sendDisabled: { opacity: 0.45 },
   sendPressed: { opacity: 0.9 },
   sendText: { color: '#fff', fontWeight: '800', fontSize: 14 },
-});
+  });
+}

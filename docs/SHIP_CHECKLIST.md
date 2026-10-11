@@ -15,6 +15,10 @@ Use before TestFlight / App Store. All items assume branch `cursor/companion-b2c
 - [ ] Settings → Offline banter EN / 廣 / EN+廣 → offline chat copy changes
 - [ ] Settings → BYO LLM (your key) → chat uses provider; toggle stream on/off
 - [ ] LLM wrong key → fallback offline + banner
+- [ ] Chat → search messages; **Clear** thread → greeting returns
+- [ ] Switch personas — offline copy feels distinct (Mika / Ren / Luna)
+- [ ] Settings → Light theme → readable on Home/Chat/Settings
+- [ ] Settings → Daily check-in reminder (opt-in) → permission prompt; off cancels
 
 ## Product / brand
 

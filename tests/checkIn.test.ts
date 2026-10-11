@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { applyCheckIn, localDateKey } from '../src/services/checkIn/streak.ts';
+import { applyCheckIn, localDateKey, previousDayKey } from '../src/services/checkIn/streak.ts';
 
 test('applyCheckIn starts streak at 1', () => {
   const today = '2026-10-11';
@@ -37,4 +37,28 @@ test('applyCheckIn idempotent same day', () => {
 test('localDateKey format', () => {
   const key = localDateKey(new Date(2026, 9, 11));
   assert.equal(key, '2026-10-11');
+});
+
+test('previousDayKey crosses month boundary', () => {
+  assert.equal(previousDayKey('2026-10-01'), '2026-09-30');
+});
+
+test('applyCheckIn consecutive across month boundary', () => {
+  const r = applyCheckIn(
+    { lastCheckInKey: '2026-09-30', currentStreak: 5, longestStreak: 5 },
+    '2026-10-01',
+  );
+  assert.equal(r.state.currentStreak, 6);
+});
+
+test('applyCheckIn same calendar day different times is idempotent', () => {
+  const morning = localDateKey(new Date(2026, 9, 11, 8, 0, 0));
+  const evening = localDateKey(new Date(2026, 9, 11, 23, 59, 0));
+  assert.equal(morning, evening);
+  const first = applyCheckIn(
+    { lastCheckInKey: null, currentStreak: 0, longestStreak: 0 },
+    morning,
+  );
+  const second = applyCheckIn(first.state, evening);
+  assert.equal(second.alreadyCheckedIn, true);
 });

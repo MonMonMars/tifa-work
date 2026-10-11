@@ -28,7 +28,10 @@ import {
   sendCompanionMessage,
 } from '../services/chat/chatService';
 import { deviceTts } from '../services/voice/tts';
+import { syncCheckInReminderSchedule } from '../services/notifications/checkInReminders';
+import type { NotificationPrefs } from '../services/notifications/types';
 import type { VoiceConfig } from '../services/voice/types';
+import type { ThemeMode } from '../theme/palettes';
 import {
   clearPersistedState,
   DEFAULT_PERSISTED,
@@ -66,6 +69,11 @@ interface CompanionStoreValue {
   clearChatError: () => void;
   stopSpeaking: () => Promise<void>;
   wipeAllLocalData: () => Promise<void>;
+  clearThread: (personaId: PersonaId) => void;
+  themeMode: ThemeMode;
+  setThemeMode: (mode: ThemeMode) => void;
+  notificationPrefs: NotificationPrefs;
+  setNotificationPrefs: (patch: Partial<NotificationPrefs>) => Promise<void>;
 }
 
 const CompanionContext = createContext<CompanionStoreValue | null>(null);
@@ -132,6 +140,28 @@ export function CompanionProvider({ children }: { children: ReactNode }) {
 
   const setVoiceConfig = useCallback((patch: Partial<VoiceConfig>) => {
     setState((s) => ({ ...s, voiceConfig: { ...s.voiceConfig, ...patch } }));
+  }, []);
+
+  const setThemeMode = useCallback((themeMode: ThemeMode) => {
+    setState((s) => ({ ...s, themeMode }));
+  }, []);
+
+  const setNotificationPrefs = useCallback(async (patch: Partial<NotificationPrefs>) => {
+    let nextEnabled = false;
+    setState((s) => {
+      const notificationPrefs = { ...s.notificationPrefs, ...patch };
+      nextEnabled = notificationPrefs.checkInRemindersEnabled;
+      return { ...s, notificationPrefs };
+    });
+    await syncCheckInReminderSchedule(nextEnabled);
+  }, []);
+
+  const clearThread = useCallback((personaId: PersonaId) => {
+    setState((s) => ({
+      ...s,
+      histories: { ...s.histories, [personaId]: [] },
+    }));
+    setExpression({ ...IDLE_EXPRESSION, updatedAt: Date.now() });
   }, []);
 
   const rememberNote = useCallback((note: string) => {
@@ -207,6 +237,7 @@ export function CompanionProvider({ children }: { children: ReactNode }) {
 
   const wipeAllLocalData = useCallback(async () => {
     await stopSpeaking();
+    await syncCheckInReminderSchedule(false);
     await clearPersistedState();
     setState({ ...DEFAULT_PERSISTED });
     setExpression({ ...IDLE_EXPRESSION, updatedAt: Date.now() });
@@ -396,6 +427,11 @@ export function CompanionProvider({ children }: { children: ReactNode }) {
       clearChatError,
       stopSpeaking,
       wipeAllLocalData,
+      clearThread,
+      themeMode: state.themeMode,
+      setThemeMode,
+      notificationPrefs: state.notificationPrefs,
+      setNotificationPrefs,
     }),
     [
       ready,
@@ -419,6 +455,9 @@ export function CompanionProvider({ children }: { children: ReactNode }) {
       clearChatError,
       stopSpeaking,
       wipeAllLocalData,
+      clearThread,
+      setThemeMode,
+      setNotificationPrefs,
     ],
   );
 

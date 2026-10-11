@@ -1,5 +1,5 @@
-import React, { useEffect, useMemo } from 'react';
-import { Pressable, StyleSheet, Text, View } from 'react-native';
+import React, { useEffect, useMemo, useState } from 'react';
+import { Alert, Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { MessageComposer } from '../components/chat/MessageComposer';
 import { MessageList } from '../components/chat/MessageList';
@@ -7,7 +7,8 @@ import { getPersona } from '../domain/personas';
 import type { PersonaId } from '../domain/personas';
 import { isLlmConfigured } from '../services/ai/llmRouting';
 import { useCompanionStore } from '../store/companionStore';
-import { UI } from '../theme/tokens';
+import { inputFontSize } from '../theme/tokens';
+import { useUi } from '../theme/useUi';
 
 interface Props {
   personaId: PersonaId;
@@ -26,6 +27,9 @@ function brainLabel(
 }
 
 export function ChatScreen({ personaId, onClose }: Props) {
+  const UI = useUi();
+  const styles = useMemo(() => makeStyles(UI), [UI]);
+
   const {
     getHistory,
     ensureGreeting,
@@ -36,9 +40,16 @@ export function ChatScreen({ personaId, onClose }: Props) {
     clearChatError,
     lastChatProvider,
     isSpeaking,
+    clearThread,
   } = useCompanionStore();
+  const [search, setSearch] = useState('');
   const persona = useMemo(() => getPersona(personaId), [personaId]);
   const messages = getHistory(personaId);
+  const filtered = useMemo(() => {
+    const q = search.trim().toLowerCase();
+    if (!q) return messages;
+    return messages.filter((m) => m.content.toLowerCase().includes(q));
+  }, [messages, search]);
 
   useEffect(() => {
     ensureGreeting(personaId);
@@ -54,9 +65,29 @@ export function ChatScreen({ personaId, onClose }: Props) {
     brainLabel(llmConfig, lastChatProvider, chatBusy),
     isSpeaking ? 'Speaking…' : null,
     llmConfig.streamEnabled && isLlmConfigured(llmConfig) ? 'stream on' : null,
+    search.trim() ? `search ${filtered.length}/${messages.length}` : null,
   ]
     .filter(Boolean)
     .join(' · ');
+
+  const onClearThread = () => {
+    Alert.alert(
+      'Clear this chat?',
+      `Removes all messages with ${persona.name} on this device. This cannot be undone.`,
+      [
+        { text: 'Cancel', style: 'cancel' },
+        {
+          text: 'Clear chat',
+          style: 'destructive',
+          onPress: () => {
+            clearThread(personaId);
+            setSearch('');
+            ensureGreeting(personaId);
+          },
+        },
+      ],
+    );
+  };
 
   return (
     <SafeAreaView style={styles.wrap} edges={['top', 'left', 'right', 'bottom']}>
@@ -75,7 +106,26 @@ export function ChatScreen({ personaId, onClose }: Props) {
           </Text>
           <Text style={styles.mode}>{modeLabel}</Text>
         </View>
-        <View style={{ width: 64 }} />
+        <Pressable
+          onPress={onClearThread}
+          hitSlop={8}
+          accessibilityRole="button"
+          accessibilityLabel="Clear chat thread"
+        >
+          <Text style={styles.clearBtn}>Clear</Text>
+        </Pressable>
+      </View>
+
+      <View style={styles.searchRow}>
+        <TextInput
+          style={styles.searchInput}
+          placeholder="Search messages…"
+          placeholderTextColor={UI.textDim}
+          value={search}
+          onChangeText={setSearch}
+          autoCapitalize="none"
+          accessibilityLabel="Search chat messages"
+        />
       </View>
 
       {chatError ? (
@@ -91,10 +141,11 @@ export function ChatScreen({ personaId, onClose }: Props) {
 
       <View style={styles.list}>
         <MessageList
-          messages={messages}
+          messages={filtered}
           personaColor={persona.colors.primary}
-          typing={chatBusy}
+          typing={chatBusy && !search.trim()}
           personaName={persona.name}
+          emptySearch={Boolean(search.trim()) && filtered.length === 0}
         />
       </View>
 
@@ -107,27 +158,41 @@ export function ChatScreen({ personaId, onClose }: Props) {
   );
 }
 
-const styles = StyleSheet.create({
-  wrap: { flex: 1, backgroundColor: UI.bg },
-  header: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingHorizontal: 12,
-    paddingVertical: 10,
-    borderBottomWidth: 1,
-    borderBottomColor: UI.hairline,
-  },
-  back: { color: UI.accent, fontWeight: '700', width: 64 },
-  headerMid: { flex: 1, alignItems: 'center' },
-  title: { color: UI.text, fontWeight: '800', fontSize: 17 },
-  mode: { color: UI.textDim, fontSize: 11, marginTop: 2 },
-  banner: {
-    backgroundColor: UI.accentSoft,
-    borderBottomWidth: 1,
-    borderBottomColor: UI.accentLine,
-    paddingHorizontal: 14,
-    paddingVertical: 8,
-  },
-  bannerText: { color: UI.textMid, fontSize: 12 },
-  list: { flex: 1 },
-});
+function makeStyles(UI: ReturnType<typeof useUi>) {
+  return StyleSheet.create({
+    wrap: { flex: 1, backgroundColor: UI.bg },
+    header: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      paddingHorizontal: 12,
+      paddingVertical: 10,
+      borderBottomWidth: 1,
+      borderBottomColor: UI.hairline,
+    },
+    back: { color: UI.accent, fontWeight: '700', width: 64 },
+    clearBtn: { color: UI.textDim, fontWeight: '700', fontSize: 13, width: 64, textAlign: 'right' },
+    headerMid: { flex: 1, alignItems: 'center' },
+    title: { color: UI.text, fontWeight: '800', fontSize: 17 },
+    mode: { color: UI.textDim, fontSize: 11, marginTop: 2 },
+    searchRow: { paddingHorizontal: 12, paddingVertical: 8, borderBottomWidth: 1, borderBottomColor: UI.hairline },
+    searchInput: {
+      backgroundColor: UI.surfaceTop,
+      borderRadius: 3,
+      paddingHorizontal: 12,
+      paddingVertical: 8,
+      color: UI.text,
+      fontSize: inputFontSize(14),
+      borderWidth: 1,
+      borderColor: UI.hairline,
+    },
+    banner: {
+      backgroundColor: UI.accentSoft,
+      borderBottomWidth: 1,
+      borderBottomColor: UI.accentLine,
+      paddingHorizontal: 14,
+      paddingVertical: 8,
+    },
+    bannerText: { color: UI.textMid, fontSize: 12 },
+    list: { flex: 1 },
+  });
+}

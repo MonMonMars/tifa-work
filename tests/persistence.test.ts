@@ -36,3 +36,9 @@ test('mergePersistedState merges check-in defaults', () => {
   });
   assert.equal(merged.checkIn.currentStreak, 2);
 });
+
+test('mergePersistedState defaults theme and notification prefs', () => {
+  const merged = mergePersistedState(null);
+  assert.equal(merged.themeMode, 'dark');
+  assert.equal(merged.notificationPrefs.checkInRemindersEnabled, false);
+});

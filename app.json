@@ -2,7 +2,7 @@
   "expo": {
     "name": "Weepo",
     "slug": "companion-b2c",
-    "version": "0.4.0",
+    "version": "0.5.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "dark",
@@ -18,7 +18,8 @@
       "infoPlist": {
         "NSMicrophoneUsageDescription": "Weepo will use the microphone for voice input when speech-to-text is enabled in a future update.",
         "NSSpeechRecognitionUsageDescription": "Weepo will use speech recognition for hands-free chat when enabled in a future update.",
-        "NSCameraUsageDescription": "Camera is not used in this version."
+        "NSCameraUsageDescription": "Camera is not used in this version.",
+        "NSUserNotificationsUsageDescription": "Weepo can send an optional daily local reminder to check in — only if you turn it on in Settings."
       }
     },
     "android": {
@@ -34,7 +35,8 @@
       "favicon": "./assets/favicon.png"
     },
     "plugins": [
-      "expo-asset"
+      "expo-asset",
+      "expo-notifications"
     ]
   }
 }

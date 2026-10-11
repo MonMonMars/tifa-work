@@ -26,6 +26,7 @@ Node **22+** for `npm test`. Open with **Expo Go** (QR) or `npm run ios` on macO
 - **Check-in:** daily streak stub on Home (local only)  
 - **M5 expression:** blended emotion hints → morph + stage motion  
 - **EAS:** stub `eas.json` + `docs/EAS_TESTFLIGHT.md`  
+- **v0.5:** persona LLM/offline flavor, chat search + clear, light theme, check-in notification stub  
 - **Privacy copy:** Settings + `docs/PRIVACY.md`  
 
 ## BYO LLM

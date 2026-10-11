@@ -8,7 +8,7 @@ import { getPersona } from '../domain/personas';
 import type { PersonaId } from '../domain/personas';
 import type { ExpressionSnapshot } from '../expression/types';
 import { useCompanionStore } from '../store/companionStore';
-import { UI } from '../theme/tokens';
+import { useUi } from '../theme/useUi';
 
 interface Props {
   personaId: PersonaId;
@@ -25,6 +25,8 @@ export function HomeScreen({
   onChangePersona,
   onProbeExpression,
 }: Props) {
+  const UI = useUi();
+  const styles = useMemo(() => makeStyles(UI), [UI]);
   const persona = useMemo(() => getPersona(personaId), [personaId]);
   const {
     isSpeaking,
@@ -96,7 +98,8 @@ export function HomeScreen({
   );
 }
 
-const styles = StyleSheet.create({
+function makeStyles(UI: ReturnType<typeof useUi>) {
+  return StyleSheet.create({
   wrap: { flex: 1, backgroundColor: UI.bg },
   topBar: {
     flexDirection: 'row',
@@ -128,4 +131,5 @@ const styles = StyleSheet.create({
   },
   chatCtaText: { color: '#fff', fontWeight: '800', fontSize: 16 },
   hint: { color: UI.textDim, fontSize: 11, textAlign: 'center', marginTop: 8 },
-});
+  });
+}

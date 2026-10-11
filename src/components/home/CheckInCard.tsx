@@ -1,7 +1,7 @@
 import React, { useEffect } from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 import type { CheckInState } from '../../services/checkIn/streak';
-import { UI } from '../../theme/tokens';
+import { useUi } from '../../theme/useUi';
 
 interface Props {
   checkIn: CheckInState;
@@ -11,6 +11,9 @@ interface Props {
 }
 
 export function CheckInCard({ checkIn, toast, onCheckIn, onDismissToast }: Props) {
+  const UI = useUi();
+  const styles = React.useMemo(() => makeStyles(UI), [UI]);
+
   useEffect(() => {
     if (!toast) return;
     const t = setTimeout(onDismissToast, 5000);
@@ -52,7 +55,8 @@ export function CheckInCard({ checkIn, toast, onCheckIn, onDismissToast }: Props
   );
 }
 
-const styles = StyleSheet.create({
+function makeStyles(UI: ReturnType<typeof useUi>) {
+  return StyleSheet.create({
   wrap: {
     marginHorizontal: 16,
     marginBottom: 10,
@@ -79,4 +83,5 @@ const styles = StyleSheet.create({
   btnText: { color: UI.text, fontWeight: '800', fontSize: 14 },
   hint: { color: UI.textDim, fontSize: 11, marginTop: 10, lineHeight: 15 },
   toast: { color: UI.accent, fontSize: 12, marginTop: 10, fontWeight: '600' },
-});
+  });
+}

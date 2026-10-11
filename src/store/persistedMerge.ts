@@ -1,6 +1,9 @@
 import type { ChatMessage } from '../domain/messages';
 import type { PersonaId } from '../domain/personas';
 import type { LlmConfig } from '../services/ai/types';
+import type { ThemeMode } from '../theme/palettes';
+import type { VoiceConfig } from '../services/voice/types';
+
 /** Duplicated shape — keep aligned with `services/checkIn/streak.ts` (avoid Node ESM import chain). */
 export interface CheckInState {
   lastCheckInKey: string | null;
@@ -13,7 +16,15 @@ const DEFAULT_CHECK_IN: CheckInState = {
   currentStreak: 0,
   longestStreak: 0,
 };
-import type { VoiceConfig } from '../services/voice/types';
+
+/** Keep aligned with `services/notifications/types.ts`. */
+export interface NotificationPrefs {
+  checkInRemindersEnabled: boolean;
+}
+
+const DEFAULT_NOTIFICATION_PREFS: NotificationPrefs = {
+  checkInRemindersEnabled: false,
+};
 
 /** Keep in sync with `DEFAULT_VOICE_CONFIG` in `services/voice/types`. */
 const DEFAULT_VOICE_CONFIG: VoiceConfig = {
@@ -39,6 +50,8 @@ export interface PersistedState {
   voiceConfig: VoiceConfig;
   hasCompletedOnboarding: boolean;
   checkIn: CheckInState;
+  themeMode: ThemeMode;
+  notificationPrefs: NotificationPrefs;
 }
 
 export const DEFAULT_PERSISTED: PersistedState = {
@@ -49,6 +62,8 @@ export const DEFAULT_PERSISTED: PersistedState = {
   voiceConfig: DEFAULT_VOICE_CONFIG,
   hasCompletedOnboarding: false,
   checkIn: DEFAULT_CHECK_IN,
+  themeMode: 'dark',
+  notificationPrefs: DEFAULT_NOTIFICATION_PREFS,
 };
 
 /** Pure merge for defaults — safe to unit test without AsyncStorage. */
@@ -62,5 +77,6 @@ export function mergePersistedState(parsed: Partial<PersistedState> | null | und
     llmConfig: { ...DEFAULT_LLM_CONFIG, ...parsed.llmConfig },
     voiceConfig: { ...DEFAULT_VOICE_CONFIG, ...parsed.voiceConfig },
     checkIn: { ...DEFAULT_CHECK_IN, ...parsed.checkIn },
+    notificationPrefs: { ...DEFAULT_NOTIFICATION_PREFS, ...parsed.notificationPrefs },
   };
 }

@@ -20,19 +20,21 @@ This repo (`tifa-work`) is a **scratchpad / PR host** for the Companion B2C MVP.
 |------|------|
 | `App.tsx` | Root navigation + overlays |
 | `index.ts` | Expo entry |
-| `src/domain/` | Personas, messages |
+| `src/domain/` | Personas, messages, `personaFlavor`, `banterLocale` |
 | `src/expression/` | Emotion adapter, stage motion, types |
 | `src/navigation/types.ts` | Screen union |
-| `src/theme/tokens.ts` | UI tokens |
+| `src/theme/` | `tokens`, `palettes`, `useUi` (dark/light) |
 | `src/store/` | AsyncStorage persistence + companion store |
 | `src/services/ai/` | LLM, SSE, prompt, memory, offline banter |
 | `src/services/chat/` | Send + streaming helpers |
 | `src/services/voice/` | TTS, STT stub, speech strip |
+| `src/services/checkIn/` | Streak logic |
+| `src/services/notifications/` | Check-in reminder stub (`expo-notifications`) |
 | `src/components/` | Avatar, chat, ErrorBoundary |
 | `src/screens/` | Title, PersonaSelect, Home, Chat, Settings |
 | `tests/` | Node unit tests (no Expo runtime) |
 | `assets/icon.png`, splash, android icons, `assets/models/README.md` | Brand + VRM placeholder docs |
-| `docs/ARCHITECTURE.md`, `VOICE.md`, `PRIVACY.md`, `VRM_AVATAR.md`, `SHIP_CHECKLIST.md`, `EAS_TESTFLIGHT.md` | Ship docs (this file too) |
+| `docs/ARCHITECTURE.md`, `VOICE.md`, `PRIVACY.md`, `VRM_AVATAR.md`, `SHIP_CHECKLIST.md`, `EAS_TESTFLIGHT.md`, `NOTIFICATIONS.md` | Ship docs (this file too) |
 | `eas.json` | EAS build/submit stub (replace Apple placeholders) |
 
 ## **KEEP** (config)

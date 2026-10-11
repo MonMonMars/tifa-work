@@ -14,7 +14,7 @@ export const PERSONAS: Persona[] = [
   {
     id: 'mika',
     name: 'Mika',
-    role: 'Companion',
+    role: 'Companion · warm',
     tagline: 'Warm, curious, remembers the little things.',
     emoji: '🌸',
     greet: "Hey — I'm Mika. I'm glad you're here. What's on your mind?",
@@ -23,7 +23,7 @@ export const PERSONAS: Persona[] = [
   {
     id: 'ren',
     name: 'Ren',
-    role: 'Partner',
+    role: 'Partner · steady',
     tagline: 'Steady, playful, good at listening.',
     emoji: '🌙',
     greet: "Ren here. No rush — tell me how your day's going.",
@@ -32,7 +32,7 @@ export const PERSONAS: Persona[] = [
   {
     id: 'luna',
     name: 'Luna',
-    role: 'Guide',
+    role: 'Guide · focus',
     tagline: 'Calm focus for work and life balance.',
     emoji: '✨',
     greet: "Hi, I'm Luna. Want to chat, vent, or plan something together?",

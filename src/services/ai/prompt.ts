@@ -1,5 +1,6 @@
 import type { ChatMessage } from '../../domain/messages';
 import type { PersonaId } from '../../domain/personas';
+import { PERSONA_ARCHETYPE, PERSONA_PROMPT_FLAVOR } from '../../domain/personaFlavor';
 import { getPersona } from '../../domain/personas';
 import { PROMPT_HISTORY_CAP, trimHistoryForPrompt } from './historyCap';
 
@@ -13,8 +14,10 @@ export function buildSystemPrompt(personaId: PersonaId, memorySnippet?: string):
       : '';
 
   return [
-    `You are ${persona.name}, a cozy AI companion in the Weepo / Companion B2C app.`,
+    `You are ${persona.name} (${persona.role}) in the Weepo companion app.`,
+    PERSONA_ARCHETYPE[personaId],
     persona.tagline,
+    PERSONA_PROMPT_FLAVOR[personaId].join(' '),
     'Reply in 1–3 short sentences unless the user asks for depth. Be warm, present, and conversational.',
     'End with a gentle question when it fits natural continuity.',
     'Optional: include one emotion tag in the form [emotion:joy=0.6] (0–1) so the avatar face can react.',

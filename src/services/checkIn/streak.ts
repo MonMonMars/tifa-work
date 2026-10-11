@@ -10,6 +10,7 @@ export const DEFAULT_CHECK_IN: CheckInState = {
   longestStreak: 0,
 };
 
+/** Device-local calendar day (not UTC) — streaks follow the phone timezone. */
 export function localDateKey(date: Date = new Date()): string {
   const y = date.getFullYear();
   const m = String(date.getMonth() + 1).padStart(2, '0');
@@ -17,7 +18,8 @@ export function localDateKey(date: Date = new Date()): string {
   return `${y}-${m}-${d}`;
 }
 
-function previousDayKey(key: string): string {
+/** Exported for unit tests (month/year boundaries). */
+export function previousDayKey(key: string): string {
   const [y, m, d] = key.split('-').map(Number);
   const dt = new Date(y!, m! - 1, d!);
   dt.setDate(dt.getDate() - 1);
