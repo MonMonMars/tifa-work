@@ -32,6 +32,8 @@ This repo (`tifa-work`) is a **scratchpad / PR host** for the Companion B2C MVP.
 | `src/services/chat/` | Send + streaming helpers |
 | `src/services/voice/` | TTS, STT stub, speech strip |
 | `src/services/checkIn/` | Streak logic |
+| `src/services/focus/` | Work focus sessions + offline encouragement |
+| `src/components/home/FocusSessionCard.tsx` | Home focus UI |
 | `src/services/notifications/` | Check-in reminder stub (`expo-notifications`) |
 | `src/components/` | Avatar, chat, ErrorBoundary |
 | `src/screens/` | Title, PersonaSelect, Home, Chat, Settings |
