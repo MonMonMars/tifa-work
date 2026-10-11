@@ -30,9 +30,18 @@ import {
   sendCompanionMessage,
 } from '../services/chat/chatService';
 import { deviceTts } from '../services/voice/tts';
+import { buildFocusCompanionLine } from '../services/focus/focusBanter';
+import {
+  endFocusSession,
+  formatWorkFocusMemoryNote,
+  reconcileFocusOnLoad,
+  startFocusSession,
+} from '../services/focus/focusSession';
+import type { FocusPreset } from '../services/focus/types';
 import { hapticOnCheckIn, hapticOnSend } from '../services/haptics/feedback';
 import { syncCheckInReminderSchedule } from '../services/notifications/checkInReminders';
 import type { NotificationPrefs } from '../services/notifications/types';
+import type { WorkCompanionPrefs } from '../services/focus/types';
 import type { VoiceConfig } from '../services/voice/types';
 import type { ThemeMode } from '../theme/palettes';
 import {
@@ -82,6 +91,16 @@ interface CompanionStoreValue {
   avatarPokeToast: string | null;
   pokeAvatar: () => void;
   clearAvatarPokeToast: () => void;
+  focusMinutesToday: number;
+  focusActive: PersistedState['focus']['active'];
+  focusToast: string | null;
+  startFocusSession: (durationMinutes: number, preset: FocusPreset) => void;
+  stopFocusSession: () => void;
+  completeFocusSession: () => void;
+  clearFocusToast: () => void;
+  saveFocusWorkNote: (note: string) => void;
+  workCompanion: WorkCompanionPrefs;
+  setWorkCompanionPrefs: (patch: Partial<WorkCompanionPrefs>) => void;
 }
 
 const CompanionContext = createContext<CompanionStoreValue | null>(null);
@@ -122,13 +141,46 @@ export function CompanionProvider({ children }: { children: ReactNode }) {
   const [isSpeaking, setIsSpeaking] = useState(false);
   const [checkInToast, setCheckInToast] = useState<string | null>(null);
   const [avatarPokeToast, setAvatarPokeToast] = useState<string | null>(null);
+  const [focusToast, setFocusToast] = useState<string | null>(null);
+
+  const showFocusLine = useCallback(
+    (phase: 'start' | 'complete', seed: number) => {
+      const personaId = state.personaId;
+      if (!personaId) return;
+      const line = buildFocusCompanionLine(
+        personaId,
+        state.voiceConfig.banterPack,
+        phase,
+        seed,
+        state.workCompanion.tipsEnabled,
+      );
+      if (line) setFocusToast(line);
+    },
+    [state.personaId, state.voiceConfig.banterPack, state.workCompanion.tipsEnabled],
+  );
 
   useEffect(() => {
     let alive = true;
     (async () => {
       const loaded = await loadPersistedState();
       if (!alive) return;
-      setState(loaded);
+      const now = Date.now();
+      const reconciled = reconcileFocusOnLoad(loaded.focus, now);
+      let next = loaded;
+      if (reconciled) {
+        next = { ...loaded, focus: reconciled.focus };
+        if (reconciled.minutesLogged > 0 && loaded.personaId) {
+          const line = buildFocusCompanionLine(
+            loaded.personaId,
+            loaded.voiceConfig.banterPack,
+            'complete',
+            now,
+            loaded.workCompanion.tipsEnabled,
+          );
+          if (line) setFocusToast(line);
+        }
+      }
+      setState(next);
       setReady(true);
     })();
     return () => {
@@ -181,6 +233,52 @@ export function CompanionProvider({ children }: { children: ReactNode }) {
 
   const clearAvatarPokeToast = useCallback(() => setAvatarPokeToast(null), []);
 
+  const setWorkCompanionPrefs = useCallback((patch: Partial<WorkCompanionPrefs>) => {
+    setState((s) => ({ ...s, workCompanion: { ...s.workCompanion, ...patch } }));
+  }, []);
+
+  const clearFocusToast = useCallback(() => setFocusToast(null), []);
+
+  const startFocusSessionAction = useCallback(
+    (durationMinutes: number, preset: FocusPreset) => {
+      const now = Date.now();
+      setState((s) => ({
+        ...s,
+        focus: startFocusSession(s.focus, now, durationMinutes, preset),
+      }));
+      showFocusLine('start', now);
+      setExpression({
+        weights: { thinking: 0.55, neutral: 0.35, joy: 0.15 },
+        label: 'Focus · deep work',
+        source: 'manual',
+        updatedAt: now,
+      });
+      void hapticOnSend();
+    },
+    [showFocusLine],
+  );
+
+  const finishFocusSession = useCallback(
+    (reason: 'complete' | 'stop') => {
+      const now = Date.now();
+      setState((s) => {
+        const result = endFocusSession(s.focus, now, reason);
+        return { ...s, focus: result.focus };
+      });
+      showFocusLine('complete', now);
+      setExpression({
+        weights: { joy: 0.5, affection: 0.25, neutral: 0.2 },
+        label: 'Focus · done',
+        source: 'manual',
+        updatedAt: now,
+      });
+    },
+    [showFocusLine],
+  );
+
+  const stopFocusSession = useCallback(() => finishFocusSession('stop'), [finishFocusSession]);
+  const completeFocusSession = useCallback(() => finishFocusSession('complete'), [finishFocusSession]);
+
   const pokeAvatar = useCallback(() => {
     const personaId = state.personaId;
     if (!personaId) return;
@@ -211,6 +309,14 @@ export function CompanionProvider({ children }: { children: ReactNode }) {
       memoryNotes: [...s.memoryNotes, trimmed].slice(-12),
     }));
   }, []);
+
+  const saveFocusWorkNote = useCallback(
+    (note: string) => {
+      const formatted = formatWorkFocusMemoryNote(note);
+      if (formatted) rememberNote(formatted);
+    },
+    [rememberNote],
+  );
 
   const getHistory = useCallback(
     (id: PersonaId) => state.histories[id] ?? [],
@@ -478,6 +584,19 @@ export function CompanionProvider({ children }: { children: ReactNode }) {
       avatarPokeToast,
       pokeAvatar,
       clearAvatarPokeToast,
+      focusMinutesToday:
+        state.focus.daily.dayKey === localDateKey()
+          ? state.focus.daily.minutesToday
+          : 0,
+      focusActive: state.focus.active,
+      focusToast,
+      startFocusSession: startFocusSessionAction,
+      stopFocusSession,
+      completeFocusSession,
+      clearFocusToast,
+      saveFocusWorkNote,
+      workCompanion: state.workCompanion,
+      setWorkCompanionPrefs,
     }),
     [
       ready,
@@ -508,6 +627,13 @@ export function CompanionProvider({ children }: { children: ReactNode }) {
       avatarPokeToast,
       pokeAvatar,
       clearAvatarPokeToast,
+      focusToast,
+      startFocusSessionAction,
+      stopFocusSession,
+      completeFocusSession,
+      clearFocusToast,
+      saveFocusWorkNote,
+      setWorkCompanionPrefs,
     ],
   );
 

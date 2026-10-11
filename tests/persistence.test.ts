@@ -42,4 +42,6 @@ test('mergePersistedState defaults theme and notification prefs', () => {
   assert.equal(merged.themeMode, 'dark');
   assert.equal(merged.notificationPrefs.checkInRemindersEnabled, false);
   assert.equal(merged.hasSeenPreChatTips, false);
+  assert.equal(merged.focus.active, null);
+  assert.equal(merged.workCompanion.tipsEnabled, true);
 });

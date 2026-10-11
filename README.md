@@ -28,7 +28,8 @@ Node **22+** for `npm test`. Open with **Expo Go** (QR) or `npm run ios` on macO
 - **EAS:** stub `eas.json` + `docs/EAS_TESTFLIGHT.md`  
 - **v0.5:** persona LLM/offline flavor, chat search + clear, light theme, check-in notification stub
 - **v0.6:** pre-chat tip sheet, memory export share, haptics stubs, chat thread cap + memo bubbles
-- **v0.6.1:** avatar poke banter, TTS lip-sync stub, empty-state illustrations, App Store doc  
+- **v0.6.1:** avatar poke banter, TTS lip-sync stub, empty-state illustrations, App Store doc
+- **v0.7.0:** work focus sessions (25/50/custom), daily minutes, optional work notes, companion tips toggle  
 - **Privacy copy:** Settings + `docs/PRIVACY.md`  
 
 ## BYO LLM

@@ -43,6 +43,8 @@ export function SettingsScreen({ onClose, onWipedAllData }: Props) {
     notificationPrefs,
     setNotificationPrefs,
     personaId,
+    workCompanion,
+    setWorkCompanionPrefs,
   } = useCompanionStore();
   const [memoryDraft, setMemoryDraft] = useState('');
 
@@ -220,6 +222,19 @@ export function SettingsScreen({ onClose, onWipedAllData }: Props) {
           ))}
         </View>
 
+        <Text style={[styles.section, { marginTop: 24 }]}>Work companion</Text>
+        <Text style={styles.help}>
+          Focus blocks on Home log minutes on device. Tips are offline encouragement on start/end — not LLM.
+        </Text>
+        <View style={styles.row}>
+          <Text style={styles.label}>Focus session tips</Text>
+          <Switch
+            value={workCompanion.tipsEnabled}
+            onValueChange={(tipsEnabled) => setWorkCompanionPrefs({ tipsEnabled })}
+            accessibilityLabel="Focus session companion tips"
+          />
+        </View>
+
         <Text style={[styles.section, { marginTop: 24 }]}>Reminders</Text>
         <Text style={styles.help}>
           Optional local nudge once per day (~10:00 device time). Off by default — see docs/NOTIFICATIONS.md.
@@ -326,7 +341,7 @@ export function SettingsScreen({ onClose, onWipedAllData }: Props) {
           </Text>
         </View>
 
-        <Text style={styles.footer}>Foundation build · v0.6.1 · tifa-work → weepo port</Text>
+        <Text style={styles.footer}>Foundation build · v0.7.0 · tifa-work → weepo port</Text>
       </ScrollView>
     </SafeAreaView>
   );

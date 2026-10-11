@@ -27,6 +27,9 @@ Use before TestFlight / App Store. All items assume branch `cursor/companion-b2c
 - [ ] TTS speaking → **MouthOpen** morph + GL mesh lip stub moves
 - [ ] Chat empty state shows View-based illustration (no image assets)
 - [ ] Review `docs/APP_STORE.md` before Connect submission
+- [ ] Home → **25m / 50m / custom** focus → countdown → stop or auto-complete
+- [ ] Focus minutes today increment; optional end note → Settings memory (`Focus · …`)
+- [ ] Settings → **Focus session tips** off → no encouragement toasts
 
 ## Product / brand
 

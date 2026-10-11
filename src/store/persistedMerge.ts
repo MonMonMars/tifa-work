@@ -26,6 +26,38 @@ const DEFAULT_NOTIFICATION_PREFS: NotificationPrefs = {
   checkInRemindersEnabled: false,
 };
 
+/** Keep aligned with `services/focus/types.ts`. */
+export type FocusPreset = 'p25' | 'p50' | 'custom';
+
+export interface FocusActiveSession {
+  startedAtMs: number;
+  durationMinutes: number;
+  preset: FocusPreset;
+}
+
+export interface FocusDailyStats {
+  dayKey: string;
+  minutesToday: number;
+}
+
+export interface FocusPersisted {
+  daily: FocusDailyStats;
+  active: FocusActiveSession | null;
+}
+
+export interface WorkCompanionPrefs {
+  tipsEnabled: boolean;
+}
+
+const DEFAULT_FOCUS: FocusPersisted = {
+  daily: { dayKey: '', minutesToday: 0 },
+  active: null,
+};
+
+const DEFAULT_WORK_COMPANION_PREFS: WorkCompanionPrefs = {
+  tipsEnabled: true,
+};
+
 /** Keep in sync with `DEFAULT_VOICE_CONFIG` in `services/voice/types`. */
 const DEFAULT_VOICE_CONFIG: VoiceConfig = {
   ttsEnabled: true,
@@ -54,6 +86,8 @@ export interface PersistedState {
   checkIn: CheckInState;
   themeMode: ThemeMode;
   notificationPrefs: NotificationPrefs;
+  focus: FocusPersisted;
+  workCompanion: WorkCompanionPrefs;
 }
 
 export const DEFAULT_PERSISTED: PersistedState = {
@@ -67,6 +101,8 @@ export const DEFAULT_PERSISTED: PersistedState = {
   checkIn: DEFAULT_CHECK_IN,
   themeMode: 'dark',
   notificationPrefs: DEFAULT_NOTIFICATION_PREFS,
+  focus: DEFAULT_FOCUS,
+  workCompanion: DEFAULT_WORK_COMPANION_PREFS,
 };
 
 /** Pure merge for defaults — safe to unit test without AsyncStorage. */
@@ -81,5 +117,10 @@ export function mergePersistedState(parsed: Partial<PersistedState> | null | und
     voiceConfig: { ...DEFAULT_VOICE_CONFIG, ...parsed.voiceConfig },
     checkIn: { ...DEFAULT_CHECK_IN, ...parsed.checkIn },
     notificationPrefs: { ...DEFAULT_NOTIFICATION_PREFS, ...parsed.notificationPrefs },
+    focus: {
+      daily: { ...DEFAULT_FOCUS.daily, ...parsed.focus?.daily },
+      active: parsed.focus?.active ?? null,
+    },
+    workCompanion: { ...DEFAULT_WORK_COMPANION_PREFS, ...parsed.workCompanion },
   };
 }

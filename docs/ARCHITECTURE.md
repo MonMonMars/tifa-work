@@ -2,7 +2,7 @@
 
 ## Product
 
-iPhone-first Expo companion: chat, persona, expressive avatar (procedural GL → VRM later).
+iPhone-first Expo companion: chat, persona, expressive avatar (procedural GL → VRM later). **Work angle:** on-device focus blocks + optional work notes (no cloud).
 
 ## Navigation
 
@@ -41,6 +41,17 @@ Title → PersonaSelect → Home (mounted)
 ## Check-in / streak (stub)
 
 `services/checkIn/streak.ts` — local calendar streak, persisted in AsyncStorage. Home **Check in** button.
+
+## Focus mode (work companion)
+
+`services/focus/` — pure session state machine (`focusSession.ts`), offline encouragement lines (`focusBanter.ts`).
+
+- Home **Focus today** card: 25 / 50 / custom minutes, countdown, stop or auto-complete.
+- Persists **minutes today** (device local day, same `localDateKey` as streaks) + optional resumable `active` session.
+- End of session: optional note → prefixed `Focus · …` in device memory notes (not cloud).
+- Settings → **Focus session tips** toggles offline start/complete copy (persona + banter pack).
+
+Timer tick lives in UI; store updates on start/stop/complete and reconciles expired sessions on cold start.
 
 ## Offline banter locales
 

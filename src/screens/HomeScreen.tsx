@@ -4,6 +4,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { AvatarStage } from '../components/avatar/AvatarStage';
 import { ExpressionPanel } from '../components/avatar/ExpressionPanel';
 import { CheckInCard } from '../components/home/CheckInCard';
+import { FocusSessionCard } from '../components/home/FocusSessionCard';
 import { getPersona } from '../domain/personas';
 import type { PersonaId } from '../domain/personas';
 import type { ExpressionSnapshot } from '../expression/types';
@@ -38,6 +39,14 @@ export function HomeScreen({
     avatarPokeToast,
     pokeAvatar,
     clearAvatarPokeToast,
+    focusMinutesToday,
+    focusActive,
+    focusToast,
+    startFocusSession,
+    stopFocusSession,
+    completeFocusSession,
+    clearFocusToast,
+    saveFocusWorkNote,
   } = useCompanionStore();
 
   return (
@@ -70,6 +79,17 @@ export function HomeScreen({
         toast={checkInToast}
         onCheckIn={performCheckIn}
         onDismissToast={clearCheckInToast}
+      />
+
+      <FocusSessionCard
+        minutesToday={focusMinutesToday}
+        active={focusActive}
+        focusToast={focusToast}
+        onStart={startFocusSession}
+        onStop={stopFocusSession}
+        onComplete={completeFocusSession}
+        onDismissToast={clearFocusToast}
+        onSaveWorkNote={saveFocusWorkNote}
       />
 
       <View style={styles.stage}>
