@@ -35,6 +35,9 @@ export function HomeScreen({
     checkInToast,
     performCheckIn,
     clearCheckInToast,
+    avatarPokeToast,
+    pokeAvatar,
+    clearAvatarPokeToast,
   } = useCompanionStore();
 
   return (
@@ -70,7 +73,14 @@ export function HomeScreen({
       />
 
       <View style={styles.stage}>
-        <AvatarStage personaId={personaId} expression={expression} />
+        <AvatarStage
+          personaId={personaId}
+          expression={expression}
+          isSpeaking={isSpeaking}
+          pokeLine={avatarPokeToast}
+          onPoke={pokeAvatar}
+          onDismissPokeLine={clearAvatarPokeToast}
+        />
       </View>
 
       <ExpressionPanel
@@ -91,7 +101,7 @@ export function HomeScreen({
         </Pressable>
         <Text style={styles.hint}>
           {isSpeaking ? 'Speaking… · ' : ''}
-          Avatar reacts to chat emotions · tap probes below
+          Tap avatar for a hello · emotions from chat · probes below
         </Text>
       </View>
     </SafeAreaView>

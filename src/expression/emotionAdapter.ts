@@ -185,7 +185,10 @@ export function parseEmotionTagFromReply(reply: string): {
 }
 
 /** Map emotion weights to placeholder morph target keys (VRM blend shape names TBD). */
-export function weightsToMorphTargets(weights: EmotionWeights): Record<string, number> {
+export function weightsToMorphTargets(
+  weights: EmotionWeights,
+  options?: { mouthOpen?: number },
+): Record<string, number> {
   return {
     Joy: clamp01(weights.joy ?? 0),
     Sorrow: clamp01(weights.sadness ?? 0),
@@ -194,6 +197,7 @@ export function weightsToMorphTargets(weights: EmotionWeights): Record<string, n
     Relaxed: clamp01(weights.neutral ?? 0.3),
     Fun: clamp01(weights.affection ?? 0.2),
     Think: clamp01(weights.thinking ?? 0),
+    MouthOpen: clamp01(options?.mouthOpen ?? 0),
     Blink: 0,
   };
 }

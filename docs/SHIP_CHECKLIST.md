@@ -23,6 +23,10 @@ Use before TestFlight / App Store. All items assume branch `cursor/companion-b2c
 - [ ] Settings → **Export notes as text** → share sheet (no API key in payload)
 - [ ] Send message / check-in → light haptic on device (Expo Go / hardware)
 - [ ] Very long thread → cap banner at 400 messages (older trimmed on device)
+- [ ] Home → **tap avatar** → joy pulse + offline poke line
+- [ ] TTS speaking → **MouthOpen** morph + GL mesh lip stub moves
+- [ ] Chat empty state shows View-based illustration (no image assets)
+- [ ] Review `docs/APP_STORE.md` before Connect submission
 
 ## Product / brand
 

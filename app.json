@@ -2,7 +2,7 @@
   "expo": {
     "name": "Weepo",
     "slug": "companion-b2c",
-    "version": "0.6.0",
+    "version": "0.6.1",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "dark",

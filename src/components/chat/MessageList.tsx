@@ -3,6 +3,7 @@ import { FlatList, StyleSheet, Text, View } from 'react-native';
 import { THREAD_STORAGE_CAP } from '../../domain/chatThreadLimits';
 import type { ChatMessage } from '../../domain/messages';
 import { useUi } from '../../theme/useUi';
+import { EmptyChatIllustration } from '../illustrations/EmptyChatIllustration';
 import { MessageBubble } from './MessageBubble';
 
 interface Props {
@@ -66,6 +67,7 @@ export function MessageList({
       }
       ListEmptyComponent={
         <View style={styles.empty}>
+          {!emptySearch ? <EmptyChatIllustration accentColor={personaColor} /> : null}
           <Text style={styles.emptyTitle}>{emptySearch ? 'No matches' : 'Start talking'}</Text>
           <Text style={styles.emptySub}>
             {emptySearch

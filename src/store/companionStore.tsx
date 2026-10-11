@@ -16,6 +16,7 @@ import { IDLE_EXPRESSION, type ExpressionSnapshot } from '../expression/types';
 import { analyzeUserText } from '../expression/emotionAdapter';
 import { extractMemoryNote } from '../services/ai/memoryExtract';
 import { isLlmConfigured } from '../services/ai/llmRouting';
+import { buildAvatarPokeLine } from '../services/ai/offlineBanterPacks';
 import { openAiCompatibleProvider } from '../services/ai/llmProviderStub';
 import type { LlmConfig } from '../services/ai/types';
 import {
@@ -29,7 +30,7 @@ import {
   sendCompanionMessage,
 } from '../services/chat/chatService';
 import { deviceTts } from '../services/voice/tts';
-import { hapticOnCheckIn } from '../services/haptics/feedback';
+import { hapticOnCheckIn, hapticOnSend } from '../services/haptics/feedback';
 import { syncCheckInReminderSchedule } from '../services/notifications/checkInReminders';
 import type { NotificationPrefs } from '../services/notifications/types';
 import type { VoiceConfig } from '../services/voice/types';
@@ -78,6 +79,9 @@ interface CompanionStoreValue {
   setNotificationPrefs: (patch: Partial<NotificationPrefs>) => Promise<void>;
   hasSeenPreChatTips: boolean;
   markPreChatTipsSeen: () => void;
+  avatarPokeToast: string | null;
+  pokeAvatar: () => void;
+  clearAvatarPokeToast: () => void;
 }
 
 const CompanionContext = createContext<CompanionStoreValue | null>(null);
@@ -117,6 +121,7 @@ export function CompanionProvider({ children }: { children: ReactNode }) {
   const [lastChatProvider, setLastChatProvider] = useState<ChatBrainMode | null>(null);
   const [isSpeaking, setIsSpeaking] = useState(false);
   const [checkInToast, setCheckInToast] = useState<string | null>(null);
+  const [avatarPokeToast, setAvatarPokeToast] = useState<string | null>(null);
 
   useEffect(() => {
     let alive = true;
@@ -173,6 +178,22 @@ export function CompanionProvider({ children }: { children: ReactNode }) {
   const markPreChatTipsSeen = useCallback(() => {
     setState((s) => ({ ...s, hasSeenPreChatTips: true }));
   }, []);
+
+  const clearAvatarPokeToast = useCallback(() => setAvatarPokeToast(null), []);
+
+  const pokeAvatar = useCallback(() => {
+    const personaId = state.personaId;
+    if (!personaId) return;
+    void hapticOnSend();
+    const line = buildAvatarPokeLine(personaId, state.voiceConfig.banterPack, Date.now());
+    setAvatarPokeToast(line);
+    setExpression({
+      weights: { joy: 0.82, affection: 0.48, surprise: 0.22, neutral: 0.08 },
+      label: 'Poke · joy pulse',
+      source: 'manual',
+      updatedAt: Date.now(),
+    });
+  }, [state.personaId, state.voiceConfig.banterPack]);
 
   const clearThread = useCallback((personaId: PersonaId) => {
     setState((s) => ({
@@ -265,6 +286,7 @@ export function CompanionProvider({ children }: { children: ReactNode }) {
     setChatBusy(false);
     setIsSpeaking(false);
     setCheckInToast(null);
+    setAvatarPokeToast(null);
   }, [stopSpeaking]);
 
   const sendMessage = useCallback(
@@ -453,6 +475,9 @@ export function CompanionProvider({ children }: { children: ReactNode }) {
       setNotificationPrefs,
       hasSeenPreChatTips: state.hasSeenPreChatTips,
       markPreChatTipsSeen,
+      avatarPokeToast,
+      pokeAvatar,
+      clearAvatarPokeToast,
     }),
     [
       ready,
@@ -480,6 +505,9 @@ export function CompanionProvider({ children }: { children: ReactNode }) {
       setThemeMode,
       setNotificationPrefs,
       markPreChatTipsSeen,
+      avatarPokeToast,
+      pokeAvatar,
+      clearAvatarPokeToast,
     ],
   );
 

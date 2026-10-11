@@ -326,7 +326,7 @@ export function SettingsScreen({ onClose, onWipedAllData }: Props) {
           </Text>
         </View>
 
-        <Text style={styles.footer}>Foundation build · v0.6.0 · tifa-work → weepo port</Text>
+        <Text style={styles.footer}>Foundation build · v0.6.1 · tifa-work → weepo port</Text>
       </ScrollView>
     </SafeAreaView>
   );

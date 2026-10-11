@@ -1,6 +1,7 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 import { weightsToMorphTargets } from '../../expression/emotionAdapter';
+import { lipSyncAmountFromPhase } from '../../expression/lipSyncStub';
 import { stageMotionFromWeights } from '../../expression/stageMotion';
 import type { ExpressionSnapshot } from '../../expression/types';
 import { UI } from '../../theme/tokens';
@@ -8,10 +9,24 @@ import { UI } from '../../theme/tokens';
 interface Props {
   expression: ExpressionSnapshot;
   accentColor: string;
+  isSpeaking?: boolean;
 }
 
-export function MorphTargetPanel({ expression, accentColor }: Props) {
-  const morphs = weightsToMorphTargets(expression.weights);
+export function MorphTargetPanel({ expression, accentColor, isSpeaking = false }: Props) {
+  const [lipPhase, setLipPhase] = useState(0);
+
+  useEffect(() => {
+    if (!isSpeaking) {
+      setLipPhase(0);
+      return;
+    }
+    const start = Date.now();
+    const id = setInterval(() => setLipPhase((Date.now() - start) / 1000), 50);
+    return () => clearInterval(id);
+  }, [isSpeaking]);
+
+  const mouthOpen = lipSyncAmountFromPhase(lipPhase, isSpeaking);
+  const morphs = weightsToMorphTargets(expression.weights, { mouthOpen });
   const dominant = stageMotionFromWeights(expression.weights).dominant;
 
   return (

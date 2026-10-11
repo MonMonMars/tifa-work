@@ -27,7 +27,8 @@ Node **22+** for `npm test`. Open with **Expo Go** (QR) or `npm run ios` on macO
 - **M5 expression:** blended emotion hints → morph + stage motion  
 - **EAS:** stub `eas.json` + `docs/EAS_TESTFLIGHT.md`  
 - **v0.5:** persona LLM/offline flavor, chat search + clear, light theme, check-in notification stub
-- **v0.6:** pre-chat tip sheet, memory export share, haptics stubs, chat thread cap + memo bubbles  
+- **v0.6:** pre-chat tip sheet, memory export share, haptics stubs, chat thread cap + memo bubbles
+- **v0.6.1:** avatar poke banter, TTS lip-sync stub, empty-state illustrations, App Store doc  
 - **Privacy copy:** Settings + `docs/PRIVACY.md`  
 
 ## BYO LLM

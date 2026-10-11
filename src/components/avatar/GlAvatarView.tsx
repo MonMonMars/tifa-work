@@ -2,6 +2,7 @@ import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 import { GLView, type ExpoWebGLRenderingContext } from 'expo-gl';
 import * as THREE from 'three';
+import { lipSyncAmountFromPhase } from '../../expression/lipSyncStub';
 import { stageMotionFromWeights } from '../../expression/stageMotion';
 import type { ExpressionSnapshot } from '../../expression/types';
 import { UI } from '../../theme/tokens';
@@ -9,6 +10,7 @@ import { UI } from '../../theme/tokens';
 interface Props {
   accentColor: string;
   expression: ExpressionSnapshot;
+  isSpeaking: boolean;
   onFailed: () => void;
 }
 
@@ -20,13 +22,15 @@ function hexToNumber(hex: string): number {
 /**
  * Minimal expo-gl stage — procedural mesh until a legal VRM is added (docs/VRM_AVATAR.md).
  */
-export function GlAvatarView({ accentColor, expression, onFailed }: Props) {
+export function GlAvatarView({ accentColor, expression, isSpeaking, onFailed }: Props) {
   const [ready, setReady] = useState(false);
   const disposeRef = useRef<(() => void) | null>(null);
   const expressionRef = useRef(expression);
   expressionRef.current = expression;
   const accentRef = useRef(accentColor);
   accentRef.current = accentColor;
+  const speakingRef = useRef(isSpeaking);
+  speakingRef.current = isSpeaking;
 
   useEffect(
     () => () => {
@@ -91,13 +95,16 @@ export function GlAvatarView({ accentColor, expression, onFailed }: Props) {
           const baseColor = hexToNumber(accentRef.current);
 
           const pulse = 1 + motion.scaleBoost;
+          const lip = lipSyncAmountFromPhase(t, speakingRef.current);
           const shakeX = Math.sin(t * 28) * motion.shake * 0.08;
           mesh.rotation.y = t * motion.spin;
           mesh.rotation.x =
             Math.sin(t * 0.7) * 0.12 + motion.tiltX + motion.sadnessDroop * 0.4;
           mesh.position.y = Math.sin(t * 2.2) * motion.bob - motion.sadnessDroop * 0.15;
           mesh.position.x = shakeX;
-          mesh.scale.setScalar(pulse);
+          const sy = pulse + lip * 0.14;
+          const sx = pulse * (1 - lip * 0.08);
+          mesh.scale.set(sx, sy, pulse);
 
           material.color.setHex(baseColor);
           material.emissive.setHex(baseColor);

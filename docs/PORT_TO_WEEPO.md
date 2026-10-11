@@ -37,7 +37,7 @@ This repo (`tifa-work`) is a **scratchpad / PR host** for the Companion B2C MVP.
 | `src/screens/` | Title, PersonaSelect, Home, Chat, Settings |
 | `tests/` | Node unit tests (no Expo runtime) |
 | `assets/icon.png`, splash, android icons, `assets/models/README.md` | Brand + VRM placeholder docs |
-| `docs/ARCHITECTURE.md`, `VOICE.md`, `PRIVACY.md`, `VRM_AVATAR.md`, `SHIP_CHECKLIST.md`, `EAS_TESTFLIGHT.md`, `NOTIFICATIONS.md` | Ship docs (this file too) |
+| `docs/ARCHITECTURE.md`, `VOICE.md`, `PRIVACY.md`, `APP_STORE.md`, `VRM_AVATAR.md`, `SHIP_CHECKLIST.md`, `EAS_TESTFLIGHT.md`, `NOTIFICATIONS.md` | Ship docs (this file too) |
 | `eas.json` | EAS build/submit stub (replace Apple placeholders) |
 
 ## **KEEP** (config)

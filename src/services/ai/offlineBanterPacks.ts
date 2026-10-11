@@ -73,6 +73,27 @@ export const REPLY_TEMPLATES_ZH: Record<PersonaId, string[]> = {
   ],
 };
 
+/** Short lines when the user pokes the avatar on Home (no LLM). */
+export const POKE_LINES_EN: Record<PersonaId, string[]> = {
+  mika: ['Hey — I felt that. You okay?', 'Mmm? I’m here.', 'That tickled — talk to me?'],
+  ren: ['Yo — you poking me?', 'I’m right here. What’s up?', 'Heh. Got my attention.'],
+  luna: ['Noted. Need a minute to vent?', 'Tap accepted — what’s on your mind?', 'I’m listening. One thing at a time.'],
+};
+
+export const POKE_LINES_ZH: Record<PersonaId, string[]> = {
+  mika: ['喂 — 我Feel到喇。好唔好呀？', '嗯？我喺度。', '呵，撩我 — 同我讲呀？'],
+  ren: ['喂 — 戳我呀？', '我喺度。点呀？', '呵，留意到喇。'],
+  luna: ['收到。想唔想讲多句？', 'Tap收到 — 谂紧咩？', '我听着。一件一件嚟。'],
+};
+
+export function buildAvatarPokeLine(personaId: PersonaId, pack: BanterPack, seed: number): string {
+  const en = pickFromPool(POKE_LINES_EN[personaId], seed);
+  if (pack === 'en') return en;
+  const zh = pickFromPool(POKE_LINES_ZH[personaId], seed + 7);
+  if (pack === 'zh-HK') return zh;
+  return `${en}\n${zh}`;
+}
+
 export function pickFromPool<T>(arr: T[], seed: number): T {
   const idx = Math.abs(Math.floor(seed)) % arr.length;
   return arr[idx]!;

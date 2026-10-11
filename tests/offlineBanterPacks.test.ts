@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { buildOfflineLine } from '../src/services/ai/offlineBanterPacks.ts';
+import { buildAvatarPokeLine, buildOfflineLine } from '../src/services/ai/offlineBanterPacks.ts';
 
 test('buildOfflineLine en pack is English only', () => {
   const { line } = buildOfflineLine('mika', 'en', 42);
@@ -11,6 +11,13 @@ test('buildOfflineLine en pack is English only', () => {
 test('buildOfflineLine zh-HK pack is Cantonese', () => {
   const { line } = buildOfflineLine('mika', 'zh-HK', 42);
   assert.match(line, /[\u4e00-\u9fff]/);
+});
+
+test('buildAvatarPokeLine respects banter pack', () => {
+  const en = buildAvatarPokeLine('mika', 'en', 3);
+  assert.match(en, /here|Hey|okay/i);
+  const zh = buildAvatarPokeLine('mika', 'zh-HK', 3);
+  assert.match(zh, /[\u4e00-\u9fff]/);
 });
 
 test('buildOfflineLine bilingual includes both', () => {

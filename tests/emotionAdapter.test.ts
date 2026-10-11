@@ -27,3 +27,8 @@ test('weightsToMorphTargets includes Think channel', () => {
   const morphs = weightsToMorphTargets({ thinking: 0.7 });
   assert.equal(morphs.Think, 0.7);
 });
+
+test('weightsToMorphTargets applies mouthOpen for lip-sync stub', () => {
+  const morphs = weightsToMorphTargets({ neutral: 0.5 }, { mouthOpen: 0.6 });
+  assert.equal(morphs.MouthOpen, 0.6);
+});
