@@ -1,0 +1,36 @@
+{
+  "expo": {
+    "name": "Companion",
+    "slug": "companion-b2c",
+    "version": "0.1.0",
+    "orientation": "portrait",
+    "icon": "./assets/icon.png",
+    "userInterfaceStyle": "dark",
+    "newArchEnabled": true,
+    "splash": {
+      "image": "./assets/splash-icon.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#0A0B10"
+    },
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "com.monmon.companion",
+      "infoPlist": {
+        "NSMicrophoneUsageDescription": "Voice chat will use the microphone in a future release.",
+        "NSCameraUsageDescription": "Camera is not used in this version."
+      }
+    },
+    "android": {
+      "package": "com.monmon.companion",
+      "adaptiveIcon": {
+        "backgroundColor": "#0A0B10",
+        "foregroundImage": "./assets/android-icon-foreground.png",
+        "backgroundImage": "./assets/android-icon-background.png",
+        "monochromeImage": "./assets/android-icon-monochrome.png"
+      }
+    },
+    "web": {
+      "favicon": "./assets/favicon.png"
+    }
+  }
+}
