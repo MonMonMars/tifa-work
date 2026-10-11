@@ -77,6 +77,7 @@ Quick smoke:
 | [VRM_AVATAR.md](./docs/VRM_AVATAR.md) | When you add `assets/models/*.vrm` |
 | [SHIP_CHECKLIST.md](./docs/SHIP_CHECKLIST.md) | Pre-release checklist |
 | [PORT_TO_WEEPO.md](./docs/PORT_TO_WEEPO.md) | Copy this foundation into `MonMonMars/weepo` |
+| [CONTRIBUTING.md](./CONTRIBUTING.md) | Agent/Mon dev loop & scope guardrails |
 | [EAS_TESTFLIGHT.md](./docs/EAS_TESTFLIGHT.md) | EAS build + TestFlight when ready |
 
 ## iOS
