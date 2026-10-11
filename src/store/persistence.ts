@@ -53,3 +53,7 @@ export async function loadPersistedState(): Promise<PersistedState> {
 export async function savePersistedState(state: PersistedState): Promise<void> {
   await AsyncStorage.setItem(STORAGE_KEY, JSON.stringify(state));
 }
+
+export async function clearPersistedState(): Promise<void> {
+  await AsyncStorage.removeItem(STORAGE_KEY);
+}

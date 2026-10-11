@@ -25,6 +25,7 @@ import {
 import { deviceTts } from '../services/voice/tts';
 import type { VoiceConfig } from '../services/voice/types';
 import {
+  clearPersistedState,
   DEFAULT_PERSISTED,
   loadPersistedState,
   savePersistedState,
@@ -55,6 +56,7 @@ interface CompanionStoreValue {
   setExpressionManual: (snapshot: ExpressionSnapshot) => void;
   clearChatError: () => void;
   stopSpeaking: () => Promise<void>;
+  wipeAllLocalData: () => Promise<void>;
 }
 
 const CompanionContext = createContext<CompanionStoreValue | null>(null);
@@ -136,20 +138,6 @@ export function CompanionProvider({ children }: { children: ReactNode }) {
     [state.histories],
   );
 
-  const ensureGreeting = useCallback(
-    (id: PersonaId) => {
-      const existing = state.histories[id] ?? [];
-      if (existing.length > 0) return;
-      const persona = getPersona(id);
-      const greet = createMessage('assistant', persona.greet);
-      setState((s) => ({
-        ...s,
-        histories: { ...s.histories, [id]: [greet] },
-      }));
-    },
-    [state.histories],
-  );
-
   const clearChatError = useCallback(() => setChatError(null), []);
 
   const stopSpeaking = useCallback(async () => {
@@ -174,6 +162,32 @@ export function CompanionProvider({ children }: { children: ReactNode }) {
     },
     [state.voiceConfig],
   );
+
+  const ensureGreeting = useCallback(
+    (id: PersonaId) => {
+      const existing = state.histories[id] ?? [];
+      if (existing.length > 0) return;
+      const persona = getPersona(id);
+      const greet = createMessage('assistant', persona.greet);
+      setState((s) => ({
+        ...s,
+        histories: { ...s.histories, [id]: [greet] },
+      }));
+      void maybeSpeak(persona.greet, undefined, state.voiceConfig);
+    },
+    [maybeSpeak, state.histories, state.voiceConfig],
+  );
+
+  const wipeAllLocalData = useCallback(async () => {
+    await stopSpeaking();
+    await clearPersistedState();
+    setState({ ...DEFAULT_PERSISTED });
+    setExpression({ ...IDLE_EXPRESSION, updatedAt: Date.now() });
+    setChatError(null);
+    setLastChatProvider(null);
+    setChatBusy(false);
+    setIsSpeaking(false);
+  }, [stopSpeaking]);
 
   const sendMessage = useCallback(
     async (text: string) => {
@@ -347,6 +361,7 @@ export function CompanionProvider({ children }: { children: ReactNode }) {
       setExpressionManual,
       clearChatError,
       stopSpeaking,
+      wipeAllLocalData,
     }),
     [
       ready,
@@ -366,6 +381,7 @@ export function CompanionProvider({ children }: { children: ReactNode }) {
       setExpressionManual,
       clearChatError,
       stopSpeaking,
+      wipeAllLocalData,
     ],
   );
 

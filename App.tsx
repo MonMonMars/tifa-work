@@ -104,7 +104,7 @@ function AppBody() {
 
       {screen === 'settings' && (
         <View style={styles.overlay}>
-          <SettingsScreen onClose={goHome} />
+          <SettingsScreen onClose={goHome} onWipedAllData={() => setScreen('title')} />
         </View>
       )}
     </View>

@@ -9,7 +9,8 @@ Use before TestFlight / App Store. All items assume branch `cursor/companion-b2c
 - [ ] `npm start` → Expo Go on iPhone
 - [ ] Title → pick persona → Home GL stage renders
 - [ ] Chat offline reply + expression morph bars move
-- [ ] Settings → enable TTS → hear assistant reply
+- [ ] Settings → enable TTS → hear assistant reply + first-open greeting when chat is empty
+- [ ] Settings → Delete all local data → returns to title, storage empty
 - [ ] Settings → BYO LLM (your key) → chat uses provider; toggle stream on/off
 - [ ] LLM wrong key → fallback offline + banner
 
@@ -36,7 +37,7 @@ Use before TestFlight / App Store. All items assume branch `cursor/companion-b2c
 - [ ] `@amoji/emotion-core` integration (M5)
 - [ ] Real STT + mic permission flow
 - [ ] React Navigation (optional)
-- [ ] Structured memory UI + export/delete all data
+- [ ] Structured memory UI + export (delete all: Settings → Delete all local data)
 
 ## CI
 

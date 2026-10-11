@@ -64,4 +64,4 @@ No secrets in git. User-provided LLM keys are never committed.
 
 ## Next after this PR
 
-Licensed VRM, emotion-core package, real STT, EAS/TestFlight, structured “delete all data”.
+Licensed VRM, emotion-core package, real STT, EAS/TestFlight, memory export.

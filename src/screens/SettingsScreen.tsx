@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import {
+  Alert,
   Pressable,
   ScrollView,
   StyleSheet,
@@ -14,9 +15,10 @@ import { UI, inputFontSize } from '../theme/tokens';
 
 interface Props {
   onClose: () => void;
+  onWipedAllData?: () => void;
 }
 
-export function SettingsScreen({ onClose }: Props) {
+export function SettingsScreen({ onClose, onWipedAllData }: Props) {
   const {
     llmConfig,
     setLlmConfig,
@@ -24,6 +26,7 @@ export function SettingsScreen({ onClose }: Props) {
     setVoiceConfig,
     memoryNotes,
     rememberNote,
+    wipeAllLocalData,
   } = useCompanionStore();
   const [memoryDraft, setMemoryDraft] = useState('');
 
@@ -106,6 +109,27 @@ export function SettingsScreen({ onClose }: Props) {
         </View>
 
         <Text style={styles.fieldLabel}>Speech rate (0.75 – 1.25)</Text>
+        <View style={styles.rateRow}>
+          {(
+            [
+              { label: 'Slower', rate: 0.85 },
+              { label: 'Normal', rate: 1.0 },
+              { label: 'Faster', rate: 1.15 },
+            ] as const
+          ).map(({ label, rate }) => (
+            <Pressable
+              key={label}
+              style={[styles.rateChip, voiceConfig.rate === rate && styles.rateChipOn]}
+              onPress={() => setVoiceConfig({ rate })}
+            >
+              <Text
+                style={[styles.rateChipText, voiceConfig.rate === rate && styles.rateChipTextOn]}
+              >
+                {label}
+              </Text>
+            </Pressable>
+          ))}
+        </View>
         <TextInput
           style={styles.input}
           placeholder="1.0"
@@ -157,6 +181,37 @@ export function SettingsScreen({ onClose }: Props) {
             ))}
           </View>
         )}
+
+        <Text style={[styles.section, { marginTop: 28 }]}>Data on this device</Text>
+        <Text style={styles.help}>
+          Removes chats, memory notes, LLM key, and persona choice from this phone. You will go back
+          to the title screen.
+        </Text>
+        <Pressable
+          style={styles.dangerBtn}
+          onPress={() => {
+            Alert.alert(
+              'Delete all local data?',
+              'This cannot be undone. Your API key and chat history will be removed from this device only.',
+              [
+                { text: 'Cancel', style: 'cancel' },
+                {
+                  text: 'Delete everything',
+                  style: 'destructive',
+                  onPress: () => {
+                    void (async () => {
+                      await wipeAllLocalData();
+                      onClose();
+                      onWipedAllData?.();
+                    })();
+                  },
+                },
+              ],
+            );
+          }}
+        >
+          <Text style={styles.dangerBtnText}>Delete all local data</Text>
+        </Pressable>
 
         <Text style={[styles.section, { marginTop: 28 }]}>Privacy & AI</Text>
         <View style={styles.privacyBox}>
@@ -230,4 +285,28 @@ const styles = StyleSheet.create({
     borderColor: UI.hairline,
   },
   privacyText: { color: UI.textMid, fontSize: 13, lineHeight: 19 },
+  rateRow: { flexDirection: 'row', gap: 8, marginBottom: 10 },
+  rateChip: {
+    flex: 1,
+    paddingVertical: 10,
+    borderRadius: 3,
+    borderWidth: 1,
+    borderColor: UI.hairline,
+    backgroundColor: UI.surfaceTop,
+    alignItems: 'center',
+  },
+  rateChipOn: { borderColor: UI.accentLine, backgroundColor: UI.accentSoft },
+  rateChipText: { color: UI.textMid, fontSize: 13, fontWeight: '600' },
+  rateChipTextOn: { color: UI.text },
+  dangerBtn: {
+    marginTop: 4,
+    paddingVertical: 12,
+    paddingHorizontal: 14,
+    borderRadius: 3,
+    borderWidth: 1,
+    borderColor: '#5c2a2a',
+    backgroundColor: '#2a1515',
+    alignItems: 'center',
+  },
+  dangerBtnText: { color: '#ffb4b4', fontWeight: '800', fontSize: 14 },
 });
