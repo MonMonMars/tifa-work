@@ -64,7 +64,7 @@ function AppBody() {
   if (screen === 'title') {
     return (
       <>
-        <TitleScreen ready onEnter={onTitleEnter} />
+        <TitleScreen ready returning={Boolean(personaId)} onEnter={onTitleEnter} />
         <StatusBar style="light" />
       </>
     );
@@ -73,7 +73,12 @@ function AppBody() {
   if (screen === 'personaSelect' || !personaId) {
     return (
       <>
-        <PersonaSelectScreen onConfirm={onPersonaConfirm} />
+        <PersonaSelectScreen
+          onConfirm={onPersonaConfirm}
+          onCancel={personaId ? goHome : undefined}
+          initialSelected={personaId ?? 'mika'}
+          mode={personaId ? 'switch' : 'onboarding'}
+        />
         <StatusBar style="light" />
       </>
     );
@@ -85,7 +90,6 @@ function AppBody() {
       {/* Home + avatar stage stays mounted under overlays (aiva-companion pattern). */}
       <HomeScreen
         personaId={personaId}
-        expression={expression}
         onOpenChat={() => setScreen('chat')}
         onOpenSettings={() => setScreen('settings')}
         onChangePersona={goSelect}

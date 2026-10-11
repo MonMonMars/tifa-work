@@ -1,61 +1,49 @@
-# Architecture
+# Architecture — Weepo / Companion B2C
 
 ## Product
 
-**Weepo** / Companion B2C — iPhone-first Expo companion (Mon Mon / tifa-work).
+iPhone-first Expo companion: chat, persona, expressive avatar (procedural GL → VRM later).
 
-## Navigation (AIVA pattern)
+## Navigation
 
 ```
-Title → PersonaSelect → Home (always mounted)
-                           ├─ overlay: Chat
-                           └─ overlay: Settings
+Title → PersonaSelect → Home (mounted)
+                           ├─ Chat overlay
+                           └─ Settings overlay
 ```
 
-Home keeps the avatar stage mounted so expression state continues when chat opens/closes.
+## Modules
 
-## Layers
+| Area | Path |
+|------|------|
+| AI / LLM | `services/ai/` — routing, OpenAI fetch, SSE stream, offline banter, prompt, memory |
+| Voice | `services/voice/` — expo-speech TTS, STT stub |
+| Chat | `services/chat/` — send + streaming shell helpers |
+| Expression | `expression/` — adapter, `stageMotion`, morph mapping |
+| Avatar UI | `components/avatar/` — `AvatarStage`, `GlAvatarView`, morph panel |
+| Store | `store/` — AsyncStorage, optimistic send, TTS after reply |
 
-| Layer | Path | Role |
-|-------|------|------|
-| UI | `src/screens/` | Flow + overlays |
-| Avatar | `src/components/avatar/` | `AvatarStage`, `GlAvatarView`, `MorphTargetPanel` |
-| Chat UI | `src/components/chat/` | List, composer, bubbles |
-| Store | `src/store/` | AsyncStorage persistence, optimistic send |
-| AI | `src/services/ai/` | Prompt, OpenAI-compatible fetch, offline fallback |
-| Chat | `src/services/chat/` | Reply orchestration + emotion parse |
-| Expression | `src/expression/` | Adapter → morph weights |
+## Chat + LLM routing
 
-## Chat flow (M3)
+`pickReplyRoute()` → `offline` | `llm-stream` | `llm-buffered`
 
-1. User sends in `ChatScreen` → optimistic user bubble in store.  
-2. `extractMemoryNote` may append a short device memory line.  
-3. `openAiCompatibleProvider.complete`:  
-   - Not configured → `offlineBanter`  
-   - Configured → `fetch` to `{baseUrl}/chat/completions` (45s timeout)  
-   - On failure → offline reply + `llmError` banner  
-4. Assistant text parsed for `[emotion:…]` → `ExpressionSnapshot` → home stage + morph bars.
+1. Optimistic user bubble  
+2. Stream path: empty assistant shell → SSE partials → finalize + emotion parse  
+3. Buffered/offline: single completion  
+4. Failure → offline fallback + banner; stream errors replace shell with apology bubble  
 
-## Memory
+## Expression → avatar
 
-- User-editable notes in Settings (max 12 strings in persistence).  
-- Auto-extracted snippets from chat (name, work, location heuristics).  
-- Last few notes injected into system prompt via `buildSystemPrompt`.  
-- History capped to **8** turns in LLM payload (`PROMPT_HISTORY_CAP`).
+`parseEmotionTagFromReply` / user text → `ExpressionSnapshot` → `stageMotionFromWeights()` drives GL motion + morph bars.
 
-## Avatar (M2 partial)
+## Voice (M4)
 
-- `GlAvatarView`: expo-gl + Three.js icosahedron driven by expression weights (pulse/rotation).  
-- Badge: **GL placeholder · VRM TODO** — see [VRM_AVATAR.md](./VRM_AVATAR.md).  
-- On WebGL failure → emoji static fallback inside `AvatarStage`.
+Settings → `deviceTts.speak()` after assistant message. Mic = STT stub only.
 
-## Still stubbed / later
+## Docs
 
-- VRM load + blend shapes  
-- `@amoji/emotion-core` package  
-- Voice (M4), auth/IAP  
-- React Navigation (optional refactor)
+- `docs/VOICE.md`, `docs/PRIVACY.md`, `docs/VRM_AVATAR.md`, `docs/SHIP_CHECKLIST.md`
 
 ## Secrets
 
-No keys in repo. `llmConfig` in AsyncStorage only.
+No API keys in repo. User LLM credentials in AsyncStorage only.

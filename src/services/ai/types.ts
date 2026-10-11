@@ -7,6 +7,13 @@ export interface LlmConfig {
   baseUrl: string;
   apiKey: string;
   model: string;
+  /** Try SSE streaming for LLM replies when supported (M3.5). */
+  streamEnabled: boolean;
+}
+
+export interface CompletionOptions {
+  onPartial?: (accumulated: string) => void;
+  preferStream?: boolean;
 }
 
 export interface ChatCompletionRequest {
@@ -26,5 +33,9 @@ export interface ChatCompletionResult {
 export interface LlmProvider {
   readonly id: string;
   isConfigured(config: LlmConfig): boolean;
-  complete(request: ChatCompletionRequest, config: LlmConfig): Promise<ChatCompletionResult>;
+  complete(
+    request: ChatCompletionRequest,
+    config: LlmConfig,
+    options?: CompletionOptions,
+  ): Promise<ChatCompletionResult>;
 }

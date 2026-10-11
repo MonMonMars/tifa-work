@@ -6,16 +6,32 @@ import { UI } from '../theme/tokens';
 
 interface Props {
   onConfirm: (id: PersonaId) => void;
+  onCancel?: () => void;
+  initialSelected?: PersonaId;
+  mode?: 'onboarding' | 'switch';
 }
 
-export function PersonaSelectScreen({ onConfirm }: Props) {
-  const [selected, setSelected] = useState<PersonaId>('mika');
+export function PersonaSelectScreen({
+  onConfirm,
+  onCancel,
+  initialSelected = 'mika',
+  mode = 'onboarding',
+}: Props) {
+  const [selected, setSelected] = useState<PersonaId>(initialSelected);
 
   return (
     <View style={styles.wrap}>
       <StatusBar style="light" />
-      <Text style={styles.kicker}>CHOOSE COMPANION</Text>
+      {onCancel ? (
+        <Pressable onPress={onCancel} style={styles.backRow}>
+          <Text style={styles.back}>← Back</Text>
+        </Pressable>
+      ) : null}
+      <Text style={styles.kicker}>{mode === 'onboarding' ? 'WEEPO · FIRST RUN' : 'SWITCH COMPANION'}</Text>
       <Text style={styles.title}>Who feels right today?</Text>
+      <Text style={styles.sub}>
+        Your chats stay on this device. Pick someone to start — you can change later from Home.
+      </Text>
       <ScrollView contentContainerStyle={styles.list}>
         {PERSONAS.map((p) => {
           const active = p.id === selected;
@@ -43,14 +59,19 @@ export function PersonaSelectScreen({ onConfirm }: Props) {
         })}
       </ScrollView>
       <Pressable style={styles.cta} onPress={() => onConfirm(selected)}>
-        <Text style={styles.ctaText}>Start with {PERSONAS.find((p) => p.id === selected)?.name}</Text>
+        <Text style={styles.ctaText}>
+          {mode === 'onboarding' ? 'Start with' : 'Switch to'}{' '}
+          {PERSONAS.find((p) => p.id === selected)?.name}
+        </Text>
       </Pressable>
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  wrap: { flex: 1, backgroundColor: UI.bg, paddingTop: 56 },
+  wrap: { flex: 1, backgroundColor: UI.bg, paddingTop: 48 },
+  backRow: { paddingHorizontal: 20, paddingBottom: 4 },
+  back: { color: UI.accent, fontWeight: '700' },
   kicker: {
     color: UI.textDim,
     letterSpacing: 2,
@@ -64,6 +85,13 @@ const styles = StyleSheet.create({
     fontWeight: '800',
     paddingHorizontal: 20,
     marginTop: 8,
+    marginBottom: 8,
+  },
+  sub: {
+    color: UI.textMid,
+    fontSize: 14,
+    lineHeight: 20,
+    paddingHorizontal: 20,
     marginBottom: 16,
   },
   list: { paddingHorizontal: 16, paddingBottom: 100 },

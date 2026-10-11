@@ -16,7 +16,8 @@
       "supportsTablet": true,
       "bundleIdentifier": "com.monmon.companion",
       "infoPlist": {
-        "NSMicrophoneUsageDescription": "Voice chat will use the microphone in a future release.",
+        "NSMicrophoneUsageDescription": "Weepo will use the microphone for voice input when speech-to-text is enabled in a future update.",
+        "NSSpeechRecognitionUsageDescription": "Weepo will use speech recognition for hands-free chat when enabled in a future update.",
         "NSCameraUsageDescription": "Camera is not used in this version."
       }
     },

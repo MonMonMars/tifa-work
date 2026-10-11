@@ -6,11 +6,11 @@ import { ExpressionPanel } from '../components/avatar/ExpressionPanel';
 import { getPersona } from '../domain/personas';
 import type { PersonaId } from '../domain/personas';
 import type { ExpressionSnapshot } from '../expression/types';
+import { useCompanionStore } from '../store/companionStore';
 import { UI } from '../theme/tokens';
 
 interface Props {
   personaId: PersonaId;
-  expression: ExpressionSnapshot;
   onOpenChat: () => void;
   onOpenSettings: () => void;
   onChangePersona: () => void;
@@ -19,13 +19,13 @@ interface Props {
 
 export function HomeScreen({
   personaId,
-  expression,
   onOpenChat,
   onOpenSettings,
   onChangePersona,
   onProbeExpression,
 }: Props) {
   const persona = useMemo(() => getPersona(personaId), [personaId]);
+  const { isSpeaking, expression } = useCompanionStore();
 
   return (
     <SafeAreaView style={styles.wrap} edges={['top', 'left', 'right']}>
@@ -57,7 +57,10 @@ export function HomeScreen({
         <Pressable style={styles.chatCta} onPress={onOpenChat}>
           <Text style={styles.chatCtaText}>Open chat</Text>
         </Pressable>
-        <Text style={styles.hint}>3D stays mounted here · chat opens as overlay (AIVA pattern)</Text>
+        <Text style={styles.hint}>
+          {isSpeaking ? 'Speaking… · ' : ''}
+          Avatar reacts to chat emotions · tap probes below
+        </Text>
       </View>
     </SafeAreaView>
   );

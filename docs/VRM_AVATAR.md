@@ -1,31 +1,60 @@
-# VRM avatar swap ticket (M2)
+# VRM avatar swap ticket (M2 → production)
 
-## Current
+## Current (shipped)
 
-- `AvatarStage` hosts **`GlAvatarView`** (expo-gl + Three.js procedural mesh) with expression-driven motion.
-- `MorphTargetPanel` shows morph target bars from `ExpressionSnapshot` (stand-in until VRM blend shapes).
-- Static emoji fallback if WebGL fails.
-- **No licensed VRM file in repo yet** — add under `assets/models/` when ready.
+- `AvatarStage` → `GlAvatarView` (expo-gl + Three.js **icosahedron**)
+- Motion from `stageMotionFromWeights()` — joy/sad/anger/fear/surprise/thinking affect spin, bob, tilt, emissive, shake
+- `MorphTargetPanel` — morph **bars** (VRM blend shape names as preview)
+- Badge: `GL · {dominant emotion} · VRM TODO`
+- **No `.vrm` file in repository** — see `assets/models/README.md`
 
 ## Target
 
-- **VRM-first** (align `amoji-app` / `@pixiv/three-vrm`, not AIVA MakeHuman GLB long-term).
-- Render in **Expo GL** (`expo-gl` + `three`) on the Home stage while chat/settings stay overlays.
+- **VRM-first** (align `amoji-app` / `@pixiv/three-vrm`, not AIVA MakeHuman GLB long-term)
+- Home stage stays mounted under chat overlay (aiva pattern)
 
-## Integration steps
+## When Mon adds `assets/models/companion.vrm`
 
-1. Add dependencies: `expo-gl`, `expo-asset`, `three`, `@pixiv/three-vrm` (evaluate RN compatibility; may need native build).
-2. Ship one small legal VRM under `assets/models/` (see amoji-app cast manifest policy).
-3. Replace `AvatarPlaceholder` with `AvatarStage` that loads VRM and applies blend shapes from `weightsToMorphTargets`.
-4. Port or depend on `@amoji/emotion-core` for text→emotion (replace keyword adapter in `emotionAdapter.ts`).
-5. Optional: `@amoji/vrm-renderer` concepts from amoji-app — adapt, do not copy Next.js shell.
+### 1. Dependencies
 
-## AIVA patterns to keep
+```bash
+npx expo install expo-gl expo-asset three
+npm install @pixiv/three-vrm
+```
 
-- Home keeps 3D mounted; chat is overlay.
-- Progressive load gate before heavy avatar work (see aiva `preload` pattern).
+Evaluate Expo dev client vs Expo Go — VRM + three often needs a **development build** after prebuild.
 
-## Out of scope for M2 stub
+### 2. Asset
 
-- Dumping full `amoji_engine_02` asset tree into this repo.
-- Capacitor iframe companion shell.
+- Place legal VRM under `assets/models/` (see `assets/models/README.md`)
+- Register with `expo-asset` or `require()` per Expo asset docs
+
+### 3. Code touch points
+
+| File | Change |
+|------|--------|
+| `src/components/avatar/GlAvatarView.tsx` | Replace icosahedron with VRM load + idle animation |
+| `src/expression/stageMotion.ts` | Keep motion for body; drive face via blend shapes |
+| `src/expression/emotionAdapter.ts` | Swap keyword adapter → `@amoji/emotion-core` when ready |
+| `MorphTargetPanel.tsx` | Optional: read actual blend shape values from VRM instance |
+
+### 4. Expression pipeline
+
+```
+assistant reply → parseEmotionTagFromReply → ExpressionSnapshot.weights
+  → weightsToMorphTargets() (VRM expression names)
+  → VRMExpressionManager.setValue(name, weight)
+  → stageMotionFromWeights() for subtle body motion until full rig
+```
+
+### 5. Verify
+
+- [ ] Idle loop at 30fps+ on target iPhone
+- [ ] Chat reply updates face within one frame of message finalize
+- [ ] Memory / GL context survives chat overlay open/close
+- [ ] Dispose VRM + renderer on persona switch
+
+## Out of scope
+
+- Copying `amoji_engine_02` asset trees into this repo
+- Bundling unlicensed VRoid / paid marketplace models

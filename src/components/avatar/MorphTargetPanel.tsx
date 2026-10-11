@@ -1,6 +1,7 @@
 import React from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 import { weightsToMorphTargets } from '../../expression/emotionAdapter';
+import { stageMotionFromWeights } from '../../expression/stageMotion';
 import type { ExpressionSnapshot } from '../../expression/types';
 import { UI } from '../../theme/tokens';
 
@@ -11,10 +12,13 @@ interface Props {
 
 export function MorphTargetPanel({ expression, accentColor }: Props) {
   const morphs = weightsToMorphTargets(expression.weights);
+  const dominant = stageMotionFromWeights(expression.weights).dominant;
 
   return (
     <View style={styles.panel}>
-      <Text style={styles.exprLabel}>{expression.label}</Text>
+      <Text style={styles.exprLabel}>
+        {expression.label} · dominant: {dominant}
+      </Text>
       {Object.entries(morphs).map(([key, value]) => (
         <View key={key} style={styles.barRow}>
           <Text style={styles.barKey}>{key}</Text>

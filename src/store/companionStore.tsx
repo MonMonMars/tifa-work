@@ -14,9 +14,16 @@ import { getPersona } from '../domain/personas';
 import { IDLE_EXPRESSION, type ExpressionSnapshot } from '../expression/types';
 import { analyzeUserText } from '../expression/emotionAdapter';
 import { extractMemoryNote } from '../services/ai/memoryExtract';
-import { isLlmConfigured } from '../services/ai/openAiCompatible';
+import { isLlmConfigured } from '../services/ai/llmRouting';
+import { openAiCompatibleProvider } from '../services/ai/llmProviderStub';
 import type { LlmConfig } from '../services/ai/types';
-import { sendCompanionMessage } from '../services/chat/chatService';
+import {
+  applyReplyToAssistant,
+  createStreamingAssistantShell,
+  sendCompanionMessage,
+} from '../services/chat/chatService';
+import { deviceTts } from '../services/voice/tts';
+import type { VoiceConfig } from '../services/voice/types';
 import {
   DEFAULT_PERSISTED,
   loadPersistedState,
@@ -31,22 +38,39 @@ interface CompanionStoreValue {
   personaId: PersonaId | null;
   histories: Partial<Record<PersonaId, ChatMessage[]>>;
   llmConfig: LlmConfig;
+  voiceConfig: VoiceConfig;
   memoryNotes: string[];
   expression: ExpressionSnapshot;
   chatBusy: boolean;
   chatError: string | null;
   lastChatProvider: ChatBrainMode | null;
+  isSpeaking: boolean;
   selectPersona: (id: PersonaId) => void;
   setLlmConfig: (patch: Partial<LlmConfig>) => void;
+  setVoiceConfig: (patch: Partial<VoiceConfig>) => void;
   rememberNote: (note: string) => void;
   getHistory: (id: PersonaId) => ChatMessage[];
   ensureGreeting: (id: PersonaId) => void;
   sendMessage: (text: string) => Promise<void>;
   setExpressionManual: (snapshot: ExpressionSnapshot) => void;
   clearChatError: () => void;
+  stopSpeaking: () => Promise<void>;
 }
 
 const CompanionContext = createContext<CompanionStoreValue | null>(null);
+
+function patchMessageContent(
+  histories: Partial<Record<PersonaId, ChatMessage[]>>,
+  personaId: PersonaId,
+  messageId: string,
+  content: string,
+): Partial<Record<PersonaId, ChatMessage[]>> {
+  const list = histories[personaId] ?? [];
+  return {
+    ...histories,
+    [personaId]: list.map((m) => (m.id === messageId ? { ...m, content } : m)),
+  };
+}
 
 export function CompanionProvider({ children }: { children: ReactNode }) {
   const [ready, setReady] = useState(false);
@@ -58,6 +82,7 @@ export function CompanionProvider({ children }: { children: ReactNode }) {
   const [chatBusy, setChatBusy] = useState(false);
   const [chatError, setChatError] = useState<string | null>(null);
   const [lastChatProvider, setLastChatProvider] = useState<ChatBrainMode | null>(null);
+  const [isSpeaking, setIsSpeaking] = useState(false);
 
   useEffect(() => {
     let alive = true;
@@ -77,6 +102,13 @@ export function CompanionProvider({ children }: { children: ReactNode }) {
     void savePersistedState(state);
   }, [state, ready]);
 
+  useEffect(
+    () => () => {
+      void deviceTts.stop();
+    },
+    [],
+  );
+
   const selectPersona = useCallback((id: PersonaId) => {
     setState((s) => ({ ...s, personaId: id, hasCompletedOnboarding: true }));
     setExpression({ ...IDLE_EXPRESSION, updatedAt: Date.now() });
@@ -84,6 +116,10 @@ export function CompanionProvider({ children }: { children: ReactNode }) {
 
   const setLlmConfig = useCallback((patch: Partial<LlmConfig>) => {
     setState((s) => ({ ...s, llmConfig: { ...s.llmConfig, ...patch } }));
+  }, []);
+
+  const setVoiceConfig = useCallback((patch: Partial<VoiceConfig>) => {
+    setState((s) => ({ ...s, voiceConfig: { ...s.voiceConfig, ...patch } }));
   }, []);
 
   const rememberNote = useCallback((note: string) => {
@@ -116,6 +152,29 @@ export function CompanionProvider({ children }: { children: ReactNode }) {
 
   const clearChatError = useCallback(() => setChatError(null), []);
 
+  const stopSpeaking = useCallback(async () => {
+    setIsSpeaking(false);
+    await deviceTts.stop();
+  }, []);
+
+  const maybeSpeak = useCallback(
+    async (text: string, emotionTag?: string, voiceConfig?: VoiceConfig) => {
+      const cfg = voiceConfig ?? state.voiceConfig;
+      if (!cfg.ttsEnabled) return;
+      setIsSpeaking(true);
+      try {
+        await deviceTts.speak(text, {
+          locale: cfg.locale,
+          rate: cfg.rate,
+          emotionTag,
+        });
+      } finally {
+        setIsSpeaking(false);
+      }
+    },
+    [state.voiceConfig],
+  );
+
   const sendMessage = useCallback(
     async (text: string) => {
       const personaId = state.personaId;
@@ -123,6 +182,7 @@ export function CompanionProvider({ children }: { children: ReactNode }) {
       const trimmed = text.trim();
       if (!trimmed || chatBusy) return;
 
+      await stopSpeaking();
       setChatBusy(true);
       setChatError(null);
       setExpression(analyzeUserText(trimmed));
@@ -136,50 +196,128 @@ export function CompanionProvider({ children }: { children: ReactNode }) {
       const memorySnippet = [...state.memoryNotes, memoryFromText].filter(Boolean).slice(-5).join('; ');
       const userMessage = createMessage('user', trimmed);
 
-      setState((s) => ({
-        ...s,
-        histories: {
-          ...s.histories,
-          [personaId]: [...history, userMessage],
-        },
-      }));
+      const useStream =
+        isLlmConfigured(state.llmConfig) && state.llmConfig.streamEnabled;
+
+      let assistantShell: ChatMessage | null = null;
+      let streamShellId: string | null = null;
+      if (useStream) {
+        assistantShell = createStreamingAssistantShell();
+        streamShellId = assistantShell.id;
+        setState((s) => ({
+          ...s,
+          histories: {
+            ...s.histories,
+            [personaId]: [...history, userMessage, assistantShell!],
+          },
+        }));
+      } else {
+        setState((s) => ({
+          ...s,
+          histories: {
+            ...s.histories,
+            [personaId]: [...history, userMessage],
+          },
+        }));
+      }
 
       try {
-        const out = await sendCompanionMessage({
-          personaId,
-          userText: trimmed,
-          history,
-          llmConfig: state.llmConfig,
-          memorySnippet,
-        });
-
-        setState((s) => {
-          const current = s.histories[personaId] ?? [];
-          const withoutDupUser =
-            current.length > 0 && current[current.length - 1]?.id === userMessage.id
-              ? current
-              : [...current, userMessage];
-          return {
-            ...s,
-            histories: {
-              ...s.histories,
-              [personaId]: [...withoutDupUser, out.assistantMessage],
+        if (useStream && assistantShell) {
+          const shellId = assistantShell.id;
+          const result = await openAiCompatibleProvider.complete(
+            {
+              personaId,
+              messages: history,
+              userText: trimmed,
+              memorySnippet,
             },
-          };
-        });
-        setExpression(out.expression);
-        setLastChatProvider(out.provider);
-        if (out.llmError && isLlmConfigured(state.llmConfig)) {
-          setChatError(out.llmError);
+            state.llmConfig,
+            {
+              preferStream: true,
+              onPartial: (accumulated) => {
+                setState((s) => ({
+                  ...s,
+                  histories: patchMessageContent(s.histories, personaId, shellId, accumulated),
+                }));
+              },
+            },
+          );
+
+          const { message, expression: expr } = applyReplyToAssistant(assistantShell, result.reply);
+          setState((s) => {
+            const list = s.histories[personaId] ?? [];
+            return {
+              ...s,
+              histories: {
+                ...s.histories,
+                [personaId]: list.map((m) => (m.id === shellId ? message : m)),
+              },
+            };
+          });
+          setExpression(expr);
+          setLastChatProvider(result.provider);
+          if (result.llmError) setChatError(result.llmError);
+          void maybeSpeak(message.content, message.emotionTag, state.voiceConfig);
+        } else {
+          const out = await sendCompanionMessage({
+            personaId,
+            userText: trimmed,
+            history,
+            llmConfig: state.llmConfig,
+            memorySnippet,
+          });
+
+          setState((s) => {
+            const current = s.histories[personaId] ?? [];
+            return {
+              ...s,
+              histories: {
+                ...s.histories,
+                [personaId]: [...current, out.assistantMessage],
+              },
+            };
+          });
+          setExpression(out.expression);
+          setLastChatProvider(out.provider);
+          if (out.llmError && isLlmConfigured(state.llmConfig)) {
+            setChatError(out.llmError);
+          }
+          void maybeSpeak(out.assistantMessage.content, out.assistantMessage.emotionTag, state.voiceConfig);
         }
       } catch (err) {
         const message = err instanceof Error ? err.message : 'Send failed';
         setChatError(message);
+        if (streamShellId) {
+          const fallback = createMessage(
+            'assistant',
+            "Something went wrong and I couldn't finish that reply. Try again?",
+          );
+          setState((s) => {
+            const list = s.histories[personaId] ?? [];
+            return {
+              ...s,
+              histories: {
+                ...s.histories,
+                [personaId]: list.map((m) => (m.id === streamShellId ? fallback : m)),
+              },
+            };
+          });
+        }
       } finally {
         setChatBusy(false);
       }
     },
-    [chatBusy, rememberNote, state.histories, state.llmConfig, state.memoryNotes, state.personaId],
+    [
+      chatBusy,
+      maybeSpeak,
+      rememberNote,
+      state.histories,
+      state.llmConfig,
+      state.memoryNotes,
+      state.personaId,
+      state.voiceConfig,
+      stopSpeaking,
+    ],
   );
 
   const setExpressionManual = useCallback((snapshot: ExpressionSnapshot) => {
@@ -192,19 +330,23 @@ export function CompanionProvider({ children }: { children: ReactNode }) {
       personaId: state.personaId,
       histories: state.histories,
       llmConfig: state.llmConfig,
+      voiceConfig: state.voiceConfig,
       memoryNotes: state.memoryNotes,
       expression,
       chatBusy,
       chatError,
       lastChatProvider,
+      isSpeaking,
       selectPersona,
       setLlmConfig,
+      setVoiceConfig,
       rememberNote,
       getHistory,
       ensureGreeting,
       sendMessage,
       setExpressionManual,
       clearChatError,
+      stopSpeaking,
     }),
     [
       ready,
@@ -213,14 +355,17 @@ export function CompanionProvider({ children }: { children: ReactNode }) {
       chatBusy,
       chatError,
       lastChatProvider,
+      isSpeaking,
       selectPersona,
       setLlmConfig,
+      setVoiceConfig,
       rememberNote,
       getHistory,
       ensureGreeting,
       sendMessage,
       setExpressionManual,
       clearChatError,
+      stopSpeaking,
     ],
   );
 

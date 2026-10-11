@@ -6,9 +6,10 @@ import { UI } from '../theme/tokens';
 interface Props {
   ready: boolean;
   onEnter?: () => void;
+  returning?: boolean;
 }
 
-export function TitleScreen({ ready, onEnter }: Props) {
+export function TitleScreen({ ready, onEnter, returning }: Props) {
   useEffect(() => {
     if (!ready || !onEnter) return;
     const t = setTimeout(onEnter, 900);
@@ -20,7 +21,9 @@ export function TitleScreen({ ready, onEnter }: Props) {
       <StatusBar style="light" />
       <Text style={styles.kicker}>MON MON · WEEPO · COMPANION B2C</Text>
       <Text style={styles.title}>Weepo</Text>
-      <Text style={styles.sub}>AI avatar companion for chat & companionship</Text>
+      <Text style={styles.sub}>
+        {returning ? 'Welcome back — your companion is ready.' : 'AI avatar companion for chat & companionship'}
+      </Text>
       {!ready ? (
         <ActivityIndicator color={UI.accent} style={{ marginTop: 32 }} />
       ) : (

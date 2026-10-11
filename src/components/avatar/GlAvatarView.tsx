@@ -2,6 +2,7 @@ import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 import { GLView, type ExpoWebGLRenderingContext } from 'expo-gl';
 import * as THREE from 'three';
+import { stageMotionFromWeights } from '../../expression/stageMotion';
 import type { ExpressionSnapshot } from '../../expression/types';
 import { UI } from '../../theme/tokens';
 
@@ -24,6 +25,8 @@ export function GlAvatarView({ accentColor, expression, onFailed }: Props) {
   const disposeRef = useRef<(() => void) | null>(null);
   const expressionRef = useRef(expression);
   expressionRef.current = expression;
+  const accentRef = useRef(accentColor);
+  accentRef.current = accentColor;
 
   useEffect(
     () => () => {
@@ -37,6 +40,8 @@ export function GlAvatarView({ accentColor, expression, onFailed }: Props) {
     async (gl: ExpoWebGLRenderingContext) => {
       let disposed = false;
       let raf = 0;
+      let mesh: THREE.Mesh | null = null;
+      let material: THREE.MeshStandardMaterial | null = null;
 
       try {
         const width = gl.drawingBufferWidth;
@@ -47,13 +52,13 @@ export function GlAvatarView({ accentColor, expression, onFailed }: Props) {
         camera.position.set(0, 0.2, 3.2);
 
         const geometry = new THREE.IcosahedronGeometry(0.85, 1);
-        const material = new THREE.MeshStandardMaterial({
+        material = new THREE.MeshStandardMaterial({
           color: hexToNumber(accentColor),
           roughness: 0.35,
           metalness: 0.15,
           emissive: new THREE.Color(hexToNumber(accentColor)).multiplyScalar(0.08),
         });
-        const mesh = new THREE.Mesh(geometry, material);
+        mesh = new THREE.Mesh(geometry, material);
         scene.add(mesh);
 
         const key = new THREE.DirectionalLight(0xffffff, 1.1);
@@ -79,15 +84,25 @@ export function GlAvatarView({ accentColor, expression, onFailed }: Props) {
 
         const start = Date.now();
         const loop = () => {
-          if (disposed) return;
+          if (disposed || !mesh || !material) return;
           raf = requestAnimationFrame(loop);
           const t = (Date.now() - start) / 1000;
-          const joy = expressionRef.current.weights.joy ?? 0;
-          const affection = expressionRef.current.weights.affection ?? 0;
-          const pulse = 1 + 0.04 * joy + 0.02 * affection;
-          mesh.rotation.y = t * 0.55;
-          mesh.rotation.x = Math.sin(t * 0.7) * 0.12;
+          const motion = stageMotionFromWeights(expressionRef.current.weights);
+          const baseColor = hexToNumber(accentRef.current);
+
+          const pulse = 1 + motion.scaleBoost;
+          const shakeX = Math.sin(t * 28) * motion.shake * 0.08;
+          mesh.rotation.y = t * motion.spin;
+          mesh.rotation.x =
+            Math.sin(t * 0.7) * 0.12 + motion.tiltX + motion.sadnessDroop * 0.4;
+          mesh.position.y = Math.sin(t * 2.2) * motion.bob - motion.sadnessDroop * 0.15;
+          mesh.position.x = shakeX;
           mesh.scale.setScalar(pulse);
+
+          material.color.setHex(baseColor);
+          material.emissive.setHex(baseColor);
+          material.emissive.multiplyScalar(0.06 + motion.emissive * 0.35);
+
           renderer.render(scene, camera);
           gl.endFrameEXP();
         };
@@ -98,7 +113,7 @@ export function GlAvatarView({ accentColor, expression, onFailed }: Props) {
           disposed = true;
           cancelAnimationFrame(raf);
           geometry.dispose();
-          material.dispose();
+          material?.dispose();
           renderer.dispose();
         };
       } catch {
@@ -107,6 +122,8 @@ export function GlAvatarView({ accentColor, expression, onFailed }: Props) {
     },
     [accentColor, onFailed],
   );
+
+  const dominant = stageMotionFromWeights(expression.weights).dominant;
 
   return (
     <View style={styles.wrap}>
@@ -117,7 +134,7 @@ export function GlAvatarView({ accentColor, expression, onFailed }: Props) {
         </View>
       )}
       <View style={styles.badge}>
-        <Text style={styles.badgeText}>GL placeholder · VRM TODO</Text>
+        <Text style={styles.badgeText}>GL · {dominant} · VRM TODO</Text>
       </View>
     </View>
   );

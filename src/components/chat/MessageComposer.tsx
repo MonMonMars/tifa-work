@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import {
+  Alert,
   KeyboardAvoidingView,
   Platform,
   Pressable,
@@ -8,6 +9,7 @@ import {
   TextInput,
   View,
 } from 'react-native';
+import { sttStubProvider } from '../../services/voice/sttStub';
 import { UI, inputFontSize } from '../../theme/tokens';
 
 interface Props {
@@ -26,12 +28,26 @@ export function MessageComposer({ busy, busyLabel = 'Sending…', onSend }: Prop
     onSend(trimmed);
   };
 
+  const onMicPress = () => {
+    Alert.alert(
+      sttStubProvider.label,
+      'Voice input is not enabled in M4. Type your message below, or add native STT in a future build. iOS requires NSMicrophoneUsageDescription before mic access (see docs/VOICE.md).',
+    );
+  };
+
   return (
     <KeyboardAvoidingView
       behavior={Platform.OS === 'ios' ? 'padding' : undefined}
       keyboardVerticalOffset={8}
     >
       <View style={styles.bar}>
+        <Pressable
+          style={({ pressed }) => [styles.mic, pressed && styles.micPressed]}
+          onPress={onMicPress}
+          accessibilityLabel="Voice input stub"
+        >
+          <Text style={styles.micIcon}>🎤</Text>
+        </Pressable>
         <TextInput
           style={styles.input}
           placeholder="Say something…"
@@ -45,7 +61,11 @@ export function MessageComposer({ busy, busyLabel = 'Sending…', onSend }: Prop
           blurOnSubmit={false}
         />
         <Pressable
-          style={({ pressed }) => [styles.send, (busy || !text.trim()) && styles.sendDisabled, pressed && styles.sendPressed]}
+          style={({ pressed }) => [
+            styles.send,
+            (busy || !text.trim()) && styles.sendDisabled,
+            pressed && styles.sendPressed,
+          ]}
           onPress={submit}
           disabled={busy || !text.trim()}
         >
@@ -66,6 +86,18 @@ const styles = StyleSheet.create({
     borderTopColor: UI.hairline,
     backgroundColor: UI.surface,
   },
+  mic: {
+    width: 44,
+    height: 44,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderRadius: 3,
+    borderWidth: 1,
+    borderColor: UI.hairline,
+    backgroundColor: UI.surfaceHi,
+  },
+  micPressed: { opacity: 0.85 },
+  micIcon: { fontSize: 18 },
   input: {
     flex: 1,
     minHeight: 44,

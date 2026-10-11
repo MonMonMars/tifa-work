@@ -17,7 +17,14 @@ interface Props {
 }
 
 export function SettingsScreen({ onClose }: Props) {
-  const { llmConfig, setLlmConfig, memoryNotes, rememberNote } = useCompanionStore();
+  const {
+    llmConfig,
+    setLlmConfig,
+    voiceConfig,
+    setVoiceConfig,
+    memoryNotes,
+    rememberNote,
+  } = useCompanionStore();
   const [memoryDraft, setMemoryDraft] = useState('');
 
   return (
@@ -76,6 +83,52 @@ export function SettingsScreen({ onClose }: Props) {
           onChangeText={(model) => setLlmConfig({ model })}
         />
 
+        <View style={[styles.row, { marginTop: 16 }]}>
+          <Text style={styles.label}>Stream LLM tokens (M3.5)</Text>
+          <Switch
+            value={llmConfig.streamEnabled}
+            onValueChange={(streamEnabled) => setLlmConfig({ streamEnabled })}
+          />
+        </View>
+
+        <Text style={[styles.section, { marginTop: 24 }]}>Voice (on-device TTS)</Text>
+        <Text style={styles.help}>
+          Uses expo-speech / system voices — no API key. Assistant replies are read aloud when
+          enabled. STT mic is a stub until a future build (see docs/VOICE.md).
+        </Text>
+
+        <View style={styles.row}>
+          <Text style={styles.label}>Speak replies</Text>
+          <Switch
+            value={voiceConfig.ttsEnabled}
+            onValueChange={(ttsEnabled) => setVoiceConfig({ ttsEnabled })}
+          />
+        </View>
+
+        <Text style={styles.fieldLabel}>Speech rate (0.75 – 1.25)</Text>
+        <TextInput
+          style={styles.input}
+          placeholder="1.0"
+          placeholderTextColor={UI.textDim}
+          keyboardType="decimal-pad"
+          value={String(voiceConfig.rate)}
+          onChangeText={(raw) => {
+            const n = parseFloat(raw);
+            if (!Number.isFinite(n)) return;
+            setVoiceConfig({ rate: Math.max(0.75, Math.min(1.25, n)) });
+          }}
+        />
+
+        <Text style={styles.fieldLabel}>Voice locale (BCP-47)</Text>
+        <TextInput
+          style={styles.input}
+          placeholder="en-US or zh-HK"
+          placeholderTextColor={UI.textDim}
+          autoCapitalize="none"
+          value={voiceConfig.locale}
+          onChangeText={(locale) => setVoiceConfig({ locale })}
+        />
+
         <Text style={[styles.section, { marginTop: 24 }]}>Device memory (stub)</Text>
         <TextInput
           style={[styles.input, styles.memoryInput]}
@@ -104,6 +157,18 @@ export function SettingsScreen({ onClose }: Props) {
             ))}
           </View>
         )}
+
+        <Text style={[styles.section, { marginTop: 28 }]}>Privacy & AI</Text>
+        <View style={styles.privacyBox}>
+          <Text style={styles.privacyText}>
+            Weepo stores chats and settings on this device. With LLM enabled, your messages go to the
+            API provider you configure — not a Mon Mon server. Replies are AI-generated, not human,
+            and are not professional advice.
+          </Text>
+          <Text style={[styles.privacyText, { marginTop: 10 }]}>
+            Full draft for App Store: see docs/PRIVACY.md in the repo.
+          </Text>
+        </View>
       </ScrollView>
     </SafeAreaView>
   );
@@ -157,4 +222,12 @@ const styles = StyleSheet.create({
   memBtnText: { color: UI.text, fontWeight: '700' },
   memList: { marginTop: 16 },
   memItem: { color: UI.textMid, fontSize: 13, marginBottom: 6 },
+  privacyBox: {
+    backgroundColor: UI.surface,
+    borderRadius: 3,
+    padding: 14,
+    borderWidth: 1,
+    borderColor: UI.hairline,
+  },
+  privacyText: { color: UI.textMid, fontSize: 13, lineHeight: 19 },
 });

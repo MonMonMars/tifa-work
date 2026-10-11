@@ -1,6 +1,8 @@
-import type { ChatCompletionRequest, ChatCompletionResult, LlmConfig } from './types';
+import type { ChatCompletionRequest, ChatCompletionResult, CompletionOptions, LlmConfig } from './types';
 import { buildOpenAiMessages } from './prompt';
 import { offlineReply } from './offlineBanter';
+import { isLlmConfigured, pickReplyRoute } from './routingPure';
+import { fetchChatCompletionStreaming } from './openAiStream';
 import { resolveChatCompletionsUrl } from './urls';
 
 export { resolveChatCompletionsUrl } from './urls';
@@ -79,20 +81,30 @@ export async function fetchChatCompletion(
   }
 }
 
-export function isLlmConfigured(config: LlmConfig): boolean {
-  return (
-    config.enabled &&
-    resolveChatCompletionsUrl(config.baseUrl) !== null &&
-    config.apiKey.trim().length > 0
-  );
-}
+export { isLlmConfigured } from './routingPure';
 
 export async function completeWithOpenAiOrOffline(
   request: ChatCompletionRequest,
   config: LlmConfig,
+  options?: CompletionOptions,
 ): Promise<ChatCompletionResult & { llmError?: string }> {
   if (!isLlmConfigured(config)) {
     return offlineReply(request);
+  }
+
+  const route = pickReplyRoute(config, options);
+
+  if (route === 'llm-stream' && options?.onPartial) {
+    const streamed = await fetchChatCompletionStreaming(config, request, {
+      onPartial: options.onPartial,
+    });
+    if (streamed.ok) {
+      return { reply: streamed.content, provider: 'llm' };
+    }
+    if (streamed.partial && streamed.partial.trim().length > 0) {
+      return { reply: streamed.partial.trim(), provider: 'llm', llmError: streamed.error };
+    }
+    /* fall through to buffered fetch */
   }
 
   const messages = buildOpenAiMessages(
@@ -104,6 +116,7 @@ export async function completeWithOpenAiOrOffline(
 
   const fetched = await fetchChatCompletion(config, messages);
   if (fetched.ok && fetched.content) {
+    options?.onPartial?.(fetched.content);
     return { reply: fetched.content, provider: 'llm' };
   }
 

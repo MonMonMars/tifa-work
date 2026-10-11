@@ -1,81 +1,67 @@
 # Weepo · Companion B2C (tifa-work)
 
-**Weepo** (Mon Mon’s Companion B2C) is an iPhone-first **Expo / React Native** app for AI avatar chat and companionship — with room to grow into work-use flows later.
-
-Patterns from [aiva-companion](https://github.com/MonMonMars/aiva-companion) (overlay navigation, home-mounted stage) and [amoji-app](https://github.com/MonMonMars/amoji-app) (emotion → face, AI module boundaries). Long-term avatar format: **VRM**; current build uses **expo-gl + Three.js** procedural mesh plus morph bars until a licensed VRM is added.
+**Weepo** is Mon Mon’s iPhone-first **Expo / React Native** companion — chat, persona, and an expressive avatar stage (Companion B2C). Patterns from [aiva-companion](https://github.com/MonMonMars/aiva-companion) and [amoji-app](https://github.com/MonMonMars/amoji-app).
 
 ## Quick start
-
-**Requirements:** Node 22+ (for local tests), npm, [Expo Go](https://expo.dev/go) on iPhone (or Xcode simulator on macOS).
 
 ```bash
 npm install
 npm start
 ```
 
-Press `i` for iOS simulator or scan the QR code with Expo Go.
+Node **22+** for `npm test`. Open with **Expo Go** (QR) or `npm run ios` on macOS.
 
 | Script | Purpose |
 |--------|---------|
-| `npm start` | Expo dev server |
-| `npm run ios` | Open iOS |
 | `npm run typecheck` | TypeScript |
-| `npm test` | Unit tests |
+| `npm test` | Unit tests (emotion, memory, LLM routing, voice strip, SSE parse) |
 
-## iOS notes
+## What’s in this MVP foundation
 
-- App display name: **Weepo** · bundle ID `com.monmon.companion`
-- **expo-gl** 3D stage runs on device/simulator; Expo Go is fine for this milestone
-- Mic/camera plist strings are placeholders until voice (M4)
-- No committed `ios/` folder — use `npx expo prebuild` when you need a custom dev client
+- **Flow:** Title → persona pick → Home (GL avatar stays mounted) → Chat / Settings overlays  
+- **Chat:** Offline banter default; **BYO OpenAI-compatible** `/chat/completions`; optional **SSE streaming** (Settings)  
+- **Memory:** Device notes + auto snippets → system prompt (8-turn cap)  
+- **Avatar:** expo-gl placeholder mesh + emotion-driven motion + morph bars (VRM: `docs/VRM_AVATAR.md`)  
+- **Voice:** expo-speech TTS for replies; mic = STT stub (`docs/VOICE.md`)  
+- **Privacy copy:** Settings + `docs/PRIVACY.md`  
 
-## App flow
+## BYO LLM
 
-1. **Title** — load AsyncStorage state  
-2. **Persona select** — Mika / Ren / Luna  
-3. **Home** — GL avatar stage + morph/expression panel (stays mounted under overlays)  
-4. **Chat** — message list, send states, offline or BYO LLM  
-5. **Settings** — OpenAI-compatible base URL, API key, model (device-only)
+Settings → enable LLM → base URL + API key + model. Keys stay in **AsyncStorage** on device only.
 
-## BYO LLM (M3)
+## Ship checklist (Mon)
 
-1. Open **Settings** → enable **LLM slot**  
-2. Set **Base URL** (e.g. `https://api.openai.com/v1`)  
-3. Paste **API key** (stored in AsyncStorage only — never in repo)  
-4. Chat uses `POST …/chat/completions` with persona + short device memory in the system prompt  
+See **[docs/SHIP_CHECKLIST.md](./docs/SHIP_CHECKLIST.md)** — run through before TestFlight.
 
-If the provider fails, Weepo **falls back to offline banter** and shows a short error banner.
+Quick smoke:
 
-## Folder structure
+1. Offline chat works with no keys  
+2. TTS on/off in Settings  
+3. LLM + stream toggle with your key  
+4. Wrong key → offline fallback + banner  
+5. Persona switch from Home  
+6. CI green on PR  
 
-```
-App.tsx
-src/
-  screens/          Title, PersonaSelect, Home, Chat, Settings
-  components/
-    chat/           List, composer, bubbles
-    avatar/         AvatarStage (GL + morph panel)
-  services/ai/      openAiCompatible, offlineBanter, prompt, memoryExtract
-  store/            companionStore + persistence
-  expression/       emotion adapter → morph targets
-docs/               ARCHITECTURE, VRM_AVATAR
-```
+## Docs map
 
-## Shipped vs next
+| Doc | Contents |
+|-----|----------|
+| [ARCHITECTURE.md](./docs/ARCHITECTURE.md) | Modules, routing, expression |
+| [VOICE.md](./docs/VOICE.md) | TTS, STT stub, iOS plist |
+| [PRIVACY.md](./docs/PRIVACY.md) | App Store–oriented draft |
+| [VRM_AVATAR.md](./docs/VRM_AVATAR.md) | When you add `assets/models/*.vrm` |
+| [SHIP_CHECKLIST.md](./docs/SHIP_CHECKLIST.md) | Pre-release checklist |
 
-| Area | Now | Next |
-|------|-----|------|
-| Chat brain | Offline banter + **live OpenAI-compatible fetch** | Streaming, tools, Apple FM |
-| Memory | Settings notes + auto snippets + prompt injection | Structured memory UI |
-| Avatar | **expo-gl placeholder mesh** + morph bars | Licensed VRM rig |
-| Emotion | Keyword + `[emotion:…]` tags | `@amoji/emotion-core` |
-| Voice | — | M4 expo-speech / Cantonese |
-| Auth / IAP | — | Post–TestFlight MVP |
+## iOS
+
+- Display name **Weepo** · bundle `com.monmon.companion`  
+- Mic/speech recognition strings in `app.json` for future STT  
+- No `ios/` folder in repo — `npx expo prebuild` / EAS when you ship native builds  
 
 ## Security
 
-No API keys in git. User keys live in AsyncStorage on device only.
+No secrets in git. User-provided LLM keys are never committed.
 
-## License
+## Next after this PR
 
-TBD — product workspace for Mon Mon.
+Licensed VRM, emotion-core package, real STT, EAS/TestFlight, structured “delete all data”.

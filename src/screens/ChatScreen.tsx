@@ -5,7 +5,7 @@ import { MessageComposer } from '../components/chat/MessageComposer';
 import { MessageList } from '../components/chat/MessageList';
 import { getPersona } from '../domain/personas';
 import type { PersonaId } from '../domain/personas';
-import { isLlmConfigured } from '../services/ai/openAiCompatible';
+import { isLlmConfigured } from '../services/ai/llmRouting';
 import { useCompanionStore } from '../store/companionStore';
 import { UI } from '../theme/tokens';
 
@@ -35,6 +35,7 @@ export function ChatScreen({ personaId, onClose }: Props) {
     chatError,
     clearChatError,
     lastChatProvider,
+    isSpeaking,
   } = useCompanionStore();
   const persona = useMemo(() => getPersona(personaId), [personaId]);
   const messages = getHistory(personaId);
@@ -49,7 +50,13 @@ export function ChatScreen({ personaId, onClose }: Props) {
     return () => clearTimeout(t);
   }, [chatError, clearChatError]);
 
-  const modeLabel = brainLabel(llmConfig, lastChatProvider, chatBusy);
+  const modeLabel = [
+    brainLabel(llmConfig, lastChatProvider, chatBusy),
+    isSpeaking ? 'Speaking…' : null,
+    llmConfig.streamEnabled && isLlmConfigured(llmConfig) ? 'stream on' : null,
+  ]
+    .filter(Boolean)
+    .join(' · ');
 
   return (
     <SafeAreaView style={styles.wrap} edges={['top', 'left', 'right', 'bottom']}>
