@@ -47,7 +47,7 @@ Title → PersonaSelect → Home (mounted)
 `services/focus/` — pure session state machine (`focusSession.ts`), offline encouragement lines (`focusBanter.ts`).
 
 - Home **Focus today** card: 25 / 50 / custom minutes, countdown, stop or auto-complete.
-- Persists **minutes today** (device local day, same `localDateKey` as streaks) + optional resumable `active` session.
+- Persists **minutes today** (device local day via shared `src/domain/localDateKey.ts`, same keys as check-in streaks) + optional resumable `active` session.
 - End of session: optional note → prefixed `Focus · …` in device memory notes (not cloud).
 - Settings → **Focus session tips** toggles offline start/complete copy (persona + banter pack).
 

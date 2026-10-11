@@ -1,3 +1,5 @@
+import { localDateKey, previousDayKey } from '../../domain/localDateKey.ts';
+
 /** Shapes aligned with `types.ts` — kept here so Node unit tests avoid extensionless ESM imports. */
 export type FocusPreset = 'p25' | 'p50' | 'custom';
 
@@ -25,21 +27,6 @@ export interface FocusPersisted {
 }
 
 export const SOFT_BREAK_MINUTES = 5;
-
-/** Device-local calendar day — keep aligned with `services/checkIn/streak.ts`. */
-function localDateKey(date: Date = new Date()): string {
-  const y = date.getFullYear();
-  const m = String(date.getMonth() + 1).padStart(2, '0');
-  const d = String(date.getDate()).padStart(2, '0');
-  return `${y}-${m}-${d}`;
-}
-
-function previousDayKey(key: string): string {
-  const [y, m, d] = key.split('-').map(Number);
-  const dt = new Date(y!, m! - 1, d!);
-  dt.setDate(dt.getDate() - 1);
-  return localDateKey(dt);
-}
 
 export const FOCUS_PRESET_MINUTES = {
   p25: 25,

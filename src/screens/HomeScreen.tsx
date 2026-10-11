@@ -1,5 +1,5 @@
 import React, { useMemo } from 'react';
-import { Pressable, StyleSheet, Text, View } from 'react-native';
+import { Pressable, ScrollView, StyleSheet, Text, useWindowDimensions, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { AvatarStage } from '../components/avatar/AvatarStage';
 import { ExpressionPanel } from '../components/avatar/ExpressionPanel';
@@ -52,6 +52,10 @@ export function HomeScreen({
     dismissFocusBreak,
   } = useCompanionStore();
 
+  const { height: windowHeight } = useWindowDimensions();
+  const compactHome = windowHeight < 700;
+  const widgetMaxHeight = compactHome ? Math.min(260, Math.round(windowHeight * 0.36)) : undefined;
+
   return (
     <SafeAreaView style={styles.wrap} edges={['top', 'left', 'right']}>
       <View style={styles.topBar}>
@@ -77,28 +81,38 @@ export function HomeScreen({
         </View>
       </View>
 
-      <CheckInCard
-        checkIn={checkIn}
-        toast={checkInToast}
-        onCheckIn={performCheckIn}
-        onDismissToast={clearCheckInToast}
-      />
+      <ScrollView
+        style={widgetMaxHeight != null ? { maxHeight: widgetMaxHeight, flexGrow: 0 } : undefined}
+        contentContainerStyle={compactHome ? styles.widgetScrollContent : undefined}
+        showsVerticalScrollIndicator={compactHome}
+        keyboardShouldPersistTaps="handled"
+        nestedScrollEnabled
+      >
+        <CheckInCard
+          checkIn={checkIn}
+          toast={checkInToast}
+          onCheckIn={performCheckIn}
+          onDismissToast={clearCheckInToast}
+          compact={compactHome}
+        />
 
-      <FocusSessionCard
-        minutesToday={focusMinutesToday}
-        active={focusActive}
-        focusToast={focusToast}
-        onStart={startFocusSession}
-        onStop={stopFocusSession}
-        onComplete={completeFocusSession}
-        onDismissToast={clearFocusToast}
-        onSaveWorkNote={saveFocusWorkNote}
-        last7Days={focusLast7Days}
-        activeBreak={focusActiveBreak}
-        onDismissBreak={dismissFocusBreak}
-      />
+        <FocusSessionCard
+          minutesToday={focusMinutesToday}
+          active={focusActive}
+          focusToast={focusToast}
+          onStart={startFocusSession}
+          onStop={stopFocusSession}
+          onComplete={completeFocusSession}
+          onDismissToast={clearFocusToast}
+          onSaveWorkNote={saveFocusWorkNote}
+          last7Days={focusLast7Days}
+          activeBreak={focusActiveBreak}
+          onDismissBreak={dismissFocusBreak}
+          compact={compactHome}
+        />
+      </ScrollView>
 
-      <View style={styles.stage}>
+      <View style={[styles.stage, compactHome && styles.stageCompact]}>
         <AvatarStage
           personaId={personaId}
           expression={expression}
@@ -157,7 +171,9 @@ function makeStyles(UI: ReturnType<typeof useUi>) {
     borderColor: UI.hairline,
   },
   iconBtnText: { fontSize: 18 },
-  stage: { flex: 1, marginHorizontal: 12, marginBottom: 8 },
+  widgetScrollContent: { paddingBottom: 4 },
+  stage: { flex: 1, marginHorizontal: 12, marginBottom: 8, minHeight: 120 },
+  stageCompact: { minHeight: 96, marginBottom: 4 },
   bottom: { paddingHorizontal: 16, paddingBottom: 16 },
   chatCta: {
     backgroundColor: UI.accent,

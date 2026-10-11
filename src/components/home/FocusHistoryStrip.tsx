@@ -5,19 +5,21 @@ import { useUi } from '../../theme/useUi';
 
 interface Props {
   days: FocusDayBar[];
+  compact?: boolean;
 }
 
-export function FocusHistoryStrip({ days }: Props) {
+export function FocusHistoryStrip({ days, compact }: Props) {
   const UI = useUi();
-  const styles = useMemo(() => makeStyles(UI), [UI]);
+  const styles = useMemo(() => makeStyles(UI, compact), [UI, compact]);
   const max = Math.max(1, ...days.map((d) => d.minutes));
 
   return (
-    <View style={styles.wrap} accessibilityLabel="Focus minutes last seven days">
+    <View style={[styles.wrap, compact && styles.wrapCompact]} accessibilityLabel="Focus minutes last seven days">
       <Text style={styles.title}>Last 7 days</Text>
       <View style={styles.row}>
         {days.map((d) => {
-          const h = d.minutes > 0 ? Math.max(4, Math.round((d.minutes / max) * 36)) : 2;
+          const barMax = compact ? 28 : 36;
+          const h = d.minutes > 0 ? Math.max(4, Math.round((d.minutes / max) * barMax)) : 2;
           return (
             <View key={d.dayKey} style={styles.col}>
               <View style={styles.barTrack}>
@@ -33,14 +35,15 @@ export function FocusHistoryStrip({ days }: Props) {
   );
 }
 
-function makeStyles(UI: ReturnType<typeof useUi>) {
+function makeStyles(UI: ReturnType<typeof useUi>, compact?: boolean) {
   return StyleSheet.create({
+    wrapCompact: { marginTop: 6 },
     wrap: { marginTop: 10 },
     title: { color: UI.textDim, fontSize: 10, fontWeight: '700', marginBottom: 6 },
     row: { flexDirection: 'row', justifyContent: 'space-between', gap: 4 },
     col: { flex: 1, alignItems: 'center' },
     barTrack: {
-      height: 40,
+      height: compact ? 32 : 40,
       width: '100%',
       justifyContent: 'flex-end',
       alignItems: 'center',

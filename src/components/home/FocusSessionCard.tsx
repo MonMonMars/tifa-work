@@ -36,6 +36,7 @@ interface Props {
   last7Days: FocusDayBar[];
   activeBreak: FocusSoftBreak | null;
   onDismissBreak: () => void;
+  compact?: boolean;
 }
 
 function formatCountdown(totalSec: number): string {
@@ -56,6 +57,7 @@ export function FocusSessionCard({
   last7Days,
   activeBreak,
   onDismissBreak,
+  compact,
 }: Props) {
   const UI = useUi();
   const styles = useMemo(() => makeStyles(UI), [UI]);
@@ -113,8 +115,8 @@ export function FocusSessionCard({
   };
 
   return (
-    <View style={styles.wrap} accessibilityRole="summary">
-      <View style={styles.row}>
+    <View style={[styles.wrap, compact && styles.wrapCompact]} accessibilityRole="summary">
+      <View style={[styles.row, compact && styles.rowCompact]}>
         <View style={styles.stats}>
           <Text style={styles.label}>Focus today</Text>
           <Text style={styles.minutes} accessibilityLabel={`${minutesToday} focus minutes today`}>
@@ -139,7 +141,7 @@ export function FocusSessionCard({
             </Pressable>
           </View>
         ) : (
-          <View style={styles.presets}>
+          <View style={[styles.presets, compact && styles.presetsCompact]}>
             {(['p25', 'p50'] as FocusPreset[]).map((p) => (
               <Pressable
                 key={p}
@@ -188,7 +190,7 @@ export function FocusSessionCard({
         </View>
       ) : null}
 
-      <FocusHistoryStrip days={last7Days} />
+      <FocusHistoryStrip days={last7Days} compact={compact} />
 
       {focusToast ? (
         <Pressable onPress={onDismissToast}>
@@ -233,6 +235,9 @@ export function FocusSessionCard({
 
 function makeStyles(UI: ReturnType<typeof useUi>) {
   return StyleSheet.create({
+    wrapCompact: { marginBottom: 6, paddingVertical: 8, paddingHorizontal: 10 },
+    rowCompact: { flexWrap: 'wrap', gap: 8 },
+    presetsCompact: { flexWrap: 'wrap', maxWidth: '100%' },
     wrap: {
       marginHorizontal: 16,
       marginBottom: 8,

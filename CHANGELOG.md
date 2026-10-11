@@ -2,6 +2,13 @@
 
 Summary for **Mon** from MVP foundation releases **0.3.x → 0.7.x**. All data on-device unless BYO LLM is enabled.
 
+## [0.7.2] — Home & settings polish
+
+- Home widget stack scrolls on small screens (check-in + focus + history)
+- Settings filter field for long list
+- Single `localDateKey` module for streak + focus (timezone note in docs)
+- `CONTRIBUTING.md` for Mon/agents; README screenshot placeholder section
+
 ## [0.7.1] — Work focus polish
 
 - 7-day focus minutes strip on Home (local history)

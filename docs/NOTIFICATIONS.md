@@ -14,7 +14,7 @@ Implementation: `src/services/notifications/checkInReminders.ts` (`expo-notifica
 
 ## Streak / timezone note
 
-Check-in streaks use **`localDateKey()`** — calendar day in the **device’s local timezone**, not UTC. If the user travels across timezones, streak continuity follows local midnight on the phone. Document this in App Store privacy questionnaire as on-device logic only.
+Check-in streaks and **focus minutes** (today + 7-day strip) share **`localDateKey()`** from `src/domain/localDateKey.ts` — calendar day in the **device’s local timezone**, not UTC. If the user travels across timezones, streak and focus rollups follow local midnight on the phone. Document this in App Store privacy questionnaire as on-device logic only.
 
 ## Before App Store / TestFlight
 

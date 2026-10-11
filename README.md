@@ -31,7 +31,24 @@ Node **22+** for `npm test`. Open with **Expo Go** (QR) or `npm run ios` on macO
 - **v0.6.1:** avatar poke banter, TTS lip-sync stub, empty-state illustrations, App Store doc
 - **v0.7.0:** work focus sessions (25/50/custom), daily minutes, optional work notes, companion tips toggle
 - **v0.7.1:** 7-day focus history strip, soft break timer, early-stop nudge — see `CHANGELOG.md`
+- **v0.7.2:** compact Home widgets, Settings filter, shared day keys — see `CHANGELOG.md`
 - **Privacy copy:** Settings + `docs/PRIVACY.md`  
+
+## Screenshots (Mon — attach later)
+
+Store and README marketing shots are **not committed yet** (no binary assets in this scaffold). When you are ready:
+
+1. Capture on a physical iPhone or Simulator (Home with check-in + focus, Chat, Settings).
+2. Save under `docs/screenshots/` (create the folder) — e.g. `home.png`, `chat.png`, `settings.png`.
+3. Link them here:
+
+```markdown
+| Home | Chat | Settings |
+|------|------|----------|
+| ![Home](./docs/screenshots/home.png) | ![Chat](./docs/screenshots/chat.png) | ![Settings](./docs/screenshots/settings.png) |
+```
+
+4. Re-use the same paths in App Store Connect / TestFlight notes (`docs/APP_STORE.md`).
 
 ## BYO LLM
 

@@ -1,13 +1,6 @@
-/** Previous calendar day key (YYYY-MM-DD). Keep aligned with checkIn/streak.ts. */
-export function previousDayKey(key: string): string {
-  const [y, m, d] = key.split('-').map(Number);
-  const dt = new Date(y!, m! - 1, d!);
-  dt.setDate(dt.getDate() - 1);
-  const ny = dt.getFullYear();
-  const nm = String(dt.getMonth() + 1).padStart(2, '0');
-  const nd = String(dt.getDate()).padStart(2, '0');
-  return `${ny}-${nm}-${nd}`;
-}
+import { previousDayKey } from '../../domain/localDateKey.ts';
+
+export { previousDayKey };
 
 export interface FocusDayBar {
   dayKey: string;

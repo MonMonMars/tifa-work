@@ -18,6 +18,7 @@ import { useCompanionStore } from '../store/companionStore';
 import { inputFontSize } from '../theme/tokens';
 import type { ThemeMode } from '../theme/palettes';
 import { useUi } from '../theme/useUi';
+import { settingsMatches } from './settingsFilter';
 
 const BANTER_OPTIONS: BanterPack[] = ['en', 'zh-HK', 'bilingual'];
 
@@ -47,6 +48,59 @@ export function SettingsScreen({ onClose, onWipedAllData }: Props) {
     setWorkCompanionPrefs,
   } = useCompanionStore();
   const [memoryDraft, setMemoryDraft] = useState('');
+  const [settingsQuery, setSettingsQuery] = useState('');
+
+  const showBrain = settingsMatches(settingsQuery, [
+    'brain',
+    'llm',
+    'openai',
+    'api',
+    'key',
+    'model',
+    'stream',
+    'chat',
+    'completions',
+    'url',
+  ]);
+  const showVoice = settingsMatches(settingsQuery, [
+    'voice',
+    'tts',
+    'speak',
+    'banter',
+    'speech',
+    'locale',
+    'rate',
+    'language',
+    '廣',
+  ]);
+  const showAppearance = settingsMatches(settingsQuery, ['appearance', 'theme', 'dark', 'light']);
+  const showWork = settingsMatches(settingsQuery, [
+    'work',
+    'focus',
+    'break',
+    'tips',
+    'companion',
+    'session',
+  ]);
+  const showReminders = settingsMatches(settingsQuery, [
+    'reminder',
+    'notification',
+    'check-in',
+    'daily',
+    'nudge',
+  ]);
+  const showMemory = settingsMatches(settingsQuery, ['memory', 'notes', 'export', 'remember']);
+  const showData = settingsMatches(settingsQuery, ['delete', 'wipe', 'data', 'local', 'reset']);
+  const showPrivacy = settingsMatches(settingsQuery, ['privacy', 'ai', 'store', 'provider']);
+  const anySection =
+    showBrain ||
+    showVoice ||
+    showAppearance ||
+    showWork ||
+    showReminders ||
+    showMemory ||
+    showData ||
+    showPrivacy;
 
   return (
     <SafeAreaView style={styles.wrap} edges={['top', 'left', 'right', 'bottom']}>
@@ -60,7 +114,27 @@ export function SettingsScreen({ onClose, onWipedAllData }: Props) {
         <View style={{ width: 48 }} />
       </View>
 
-      <ScrollView contentContainerStyle={styles.content}>
+      <View style={styles.searchRow}>
+        <TextInput
+          style={styles.searchInput}
+          placeholder="Filter settings…"
+          placeholderTextColor={UI.textDim}
+          value={settingsQuery}
+          onChangeText={setSettingsQuery}
+          autoCapitalize="none"
+          autoCorrect={false}
+          clearButtonMode="while-editing"
+          accessibilityLabel="Filter settings"
+        />
+      </View>
+
+      <ScrollView contentContainerStyle={styles.content} keyboardShouldPersistTaps="handled">
+        {!anySection && settingsQuery.trim() ? (
+          <Text style={styles.emptyFilter}>No settings match “{settingsQuery.trim()}”.</Text>
+        ) : null}
+
+        {showBrain ? (
+          <>
         <Text style={styles.section}>Brain (BYO OpenAI-compatible)</Text>
         <Text style={styles.help}>
           Keys stay on device only (AsyncStorage). When enabled with a valid base URL + API key,
@@ -117,8 +191,12 @@ export function SettingsScreen({ onClose, onWipedAllData }: Props) {
             accessibilityLabel="Stream LLM tokens"
           />
         </View>
+          </>
+        ) : null}
 
-        <Text style={[styles.section, { marginTop: 24 }]}>Voice (on-device TTS)</Text>
+        {showVoice ? (
+          <>
+        <Text style={[styles.section, { marginTop: showBrain ? 24 : 0 }]}>Voice (on-device TTS)</Text>
         <Text style={styles.help}>
           Uses expo-speech / system voices — no API key. Assistant replies are read aloud when
           enabled. STT mic is a stub until a future build (see docs/VOICE.md).
@@ -203,8 +281,12 @@ export function SettingsScreen({ onClose, onWipedAllData }: Props) {
           value={voiceConfig.locale}
           onChangeText={(locale) => setVoiceConfig({ locale })}
         />
+          </>
+        ) : null}
 
-        <Text style={[styles.section, { marginTop: 24 }]}>Appearance</Text>
+        {showAppearance ? (
+          <>
+        <Text style={[styles.section, { marginTop: showVoice || showBrain ? 24 : 0 }]}>Appearance</Text>
         <View style={styles.rateRow}>
           {(['dark', 'light'] as ThemeMode[]).map((mode) => (
             <Pressable
@@ -221,8 +303,14 @@ export function SettingsScreen({ onClose, onWipedAllData }: Props) {
             </Pressable>
           ))}
         </View>
+          </>
+        ) : null}
 
-        <Text style={[styles.section, { marginTop: 24 }]}>Work companion</Text>
+        {showWork ? (
+          <>
+        <Text style={[styles.section, { marginTop: showAppearance || showVoice || showBrain ? 24 : 0 }]}>
+          Work companion
+        </Text>
         <Text style={styles.help}>
           Focus blocks on Home log minutes on device. Tips are offline encouragement on start/end — not LLM.
         </Text>
@@ -242,8 +330,14 @@ export function SettingsScreen({ onClose, onWipedAllData }: Props) {
             accessibilityLabel="Five minute soft break after completed focus"
           />
         </View>
+          </>
+        ) : null}
 
-        <Text style={[styles.section, { marginTop: 24 }]}>Reminders</Text>
+        {showReminders ? (
+          <>
+        <Text style={[styles.section, { marginTop: showWork || showAppearance || showVoice || showBrain ? 24 : 0 }]}>
+          Reminders
+        </Text>
         <Text style={styles.help}>
           Optional local nudge once per day (~10:00 device time). Off by default — see docs/NOTIFICATIONS.md.
         </Text>
@@ -257,8 +351,14 @@ export function SettingsScreen({ onClose, onWipedAllData }: Props) {
             accessibilityLabel="Daily check-in reminder"
           />
         </View>
+          </>
+        ) : null}
 
-        <Text style={[styles.section, { marginTop: 24 }]}>Device memory (stub)</Text>
+        {showMemory ? (
+          <>
+        <Text style={[styles.section, { marginTop: showReminders || showWork || showAppearance || showVoice || showBrain ? 24 : 0 }]}>
+          Device memory (stub)
+        </Text>
         <TextInput
           style={[styles.input, styles.memoryInput]}
           placeholder="Add a note the companion should remember…"
@@ -305,8 +405,12 @@ export function SettingsScreen({ onClose, onWipedAllData }: Props) {
         <Text style={[styles.help, { marginTop: 8, marginBottom: 0 }]}>
           Opens the system share sheet — plain text only, no API keys.
         </Text>
+          </>
+        ) : null}
 
-        <Text style={[styles.section, { marginTop: 28 }]}>Data on this device</Text>
+        {showData ? (
+          <>
+        <Text style={[styles.section, { marginTop: showMemory ? 28 : 0 }]}>Data on this device</Text>
         <Text style={styles.help}>
           Removes chats, memory notes, LLM key, and persona choice from this phone. You will go back
           to the title screen.
@@ -336,8 +440,12 @@ export function SettingsScreen({ onClose, onWipedAllData }: Props) {
         >
           <Text style={styles.dangerBtnText}>Delete all local data</Text>
         </Pressable>
+          </>
+        ) : null}
 
-        <Text style={[styles.section, { marginTop: 28 }]}>Privacy & AI</Text>
+        {showPrivacy ? (
+          <>
+        <Text style={[styles.section, { marginTop: showData || showMemory ? 28 : 0 }]}>Privacy & AI</Text>
         <View style={styles.privacyBox}>
           <Text style={styles.privacyText}>
             Weepo stores chats and settings on this device. With LLM enabled, your messages go to the
@@ -348,8 +456,10 @@ export function SettingsScreen({ onClose, onWipedAllData }: Props) {
             Full draft for App Store: see docs/PRIVACY.md in the repo.
           </Text>
         </View>
+          </>
+        ) : null}
 
-        <Text style={styles.footer}>Foundation build · v0.7.1 · tifa-work → weepo port</Text>
+        <Text style={styles.footer}>Foundation build · v0.7.2 · tifa-work → weepo port</Text>
       </ScrollView>
     </SafeAreaView>
   );
@@ -369,6 +479,24 @@ function makeStyles(UI: ReturnType<typeof useUi>) {
   },
   back: { color: UI.accent, fontWeight: '700', width: 48 },
   title: { color: UI.text, fontWeight: '800', fontSize: 17 },
+  searchRow: {
+    paddingHorizontal: 16,
+    paddingTop: 8,
+    paddingBottom: 4,
+    borderBottomWidth: 1,
+    borderBottomColor: UI.hairline,
+  },
+  searchInput: {
+    backgroundColor: UI.surfaceTop,
+    borderRadius: 3,
+    paddingHorizontal: 12,
+    paddingVertical: 10,
+    color: UI.text,
+    fontSize: inputFontSize(15),
+    borderWidth: 1,
+    borderColor: UI.hairline,
+  },
+  emptyFilter: { color: UI.textDim, fontSize: 14, marginBottom: 16, lineHeight: 20 },
   content: { padding: 16, paddingBottom: 40 },
   section: { color: UI.text, fontWeight: '800', fontSize: 15, marginBottom: 8 },
   help: { color: UI.textDim, fontSize: 13, lineHeight: 18, marginBottom: 16 },

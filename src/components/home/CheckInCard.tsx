@@ -8,9 +8,10 @@ interface Props {
   toast: string | null;
   onCheckIn: () => void;
   onDismissToast: () => void;
+  compact?: boolean;
 }
 
-export function CheckInCard({ checkIn, toast, onCheckIn, onDismissToast }: Props) {
+export function CheckInCard({ checkIn, toast, onCheckIn, onDismissToast, compact }: Props) {
   const UI = useUi();
   const styles = React.useMemo(() => makeStyles(UI), [UI]);
 
@@ -23,7 +24,7 @@ export function CheckInCard({ checkIn, toast, onCheckIn, onDismissToast }: Props
   const streak = checkIn.currentStreak;
 
   return (
-    <View style={styles.wrap} accessibilityRole="summary">
+    <View style={[styles.wrap, compact && styles.wrapCompact]} accessibilityRole="summary">
       <View style={styles.row}>
         <View style={styles.stats}>
           <Text style={styles.streakNum} accessibilityLabel={`Current streak ${streak} days`}>
@@ -48,7 +49,7 @@ export function CheckInCard({ checkIn, toast, onCheckIn, onDismissToast }: Props
         <Pressable onPress={onDismissToast} accessibilityRole="text">
           <Text style={styles.toast}>{toast}</Text>
         </Pressable>
-      ) : (
+      ) : compact ? null : (
         <Text style={styles.hint}>Show up once a day — streaks are local only.</Text>
       )}
     </View>
@@ -57,6 +58,7 @@ export function CheckInCard({ checkIn, toast, onCheckIn, onDismissToast }: Props
 
 function makeStyles(UI: ReturnType<typeof useUi>) {
   return StyleSheet.create({
+  wrapCompact: { marginBottom: 6, paddingVertical: 8, paddingHorizontal: 10 },
   wrap: {
     marginHorizontal: 16,
     marginBottom: 10,
