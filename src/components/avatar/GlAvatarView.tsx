@@ -1,0 +1,169 @@
+import React, { useCallback, useEffect, useRef, useState } from 'react';
+import { StyleSheet, Text, View } from 'react-native';
+import { GLView, type ExpoWebGLRenderingContext } from 'expo-gl';
+import * as THREE from 'three';
+import { lipSyncAmountFromPhase } from '../../expression/lipSyncStub';
+import { stageMotionFromWeights } from '../../expression/stageMotion';
+import type { ExpressionSnapshot } from '../../expression/types';
+import { UI } from '../../theme/tokens';
+
+interface Props {
+  accentColor: string;
+  expression: ExpressionSnapshot;
+  isSpeaking: boolean;
+  onFailed: () => void;
+}
+
+function hexToNumber(hex: string): number {
+  const c = hex.replace('#', '');
+  return parseInt(c.length === 6 ? c : 'ffffff', 16);
+}
+
+/**
+ * Minimal expo-gl stage — procedural mesh until a legal VRM is added (docs/VRM_AVATAR.md).
+ */
+export function GlAvatarView({ accentColor, expression, isSpeaking, onFailed }: Props) {
+  const [ready, setReady] = useState(false);
+  const disposeRef = useRef<(() => void) | null>(null);
+  const expressionRef = useRef(expression);
+  expressionRef.current = expression;
+  const accentRef = useRef(accentColor);
+  accentRef.current = accentColor;
+  const speakingRef = useRef(isSpeaking);
+  speakingRef.current = isSpeaking;
+
+  useEffect(
+    () => () => {
+      disposeRef.current?.();
+      disposeRef.current = null;
+    },
+    [],
+  );
+
+  const onContextCreate = useCallback(
+    async (gl: ExpoWebGLRenderingContext) => {
+      let disposed = false;
+      let raf = 0;
+      let mesh: THREE.Mesh | null = null;
+      let material: THREE.MeshStandardMaterial | null = null;
+
+      try {
+        const width = gl.drawingBufferWidth;
+        const height = gl.drawingBufferHeight;
+
+        const scene = new THREE.Scene();
+        const camera = new THREE.PerspectiveCamera(45, width / height, 0.1, 100);
+        camera.position.set(0, 0.2, 3.2);
+
+        const geometry = new THREE.IcosahedronGeometry(0.85, 1);
+        material = new THREE.MeshStandardMaterial({
+          color: hexToNumber(accentColor),
+          roughness: 0.35,
+          metalness: 0.15,
+          emissive: new THREE.Color(hexToNumber(accentColor)).multiplyScalar(0.08),
+        });
+        mesh = new THREE.Mesh(geometry, material);
+        scene.add(mesh);
+
+        const key = new THREE.DirectionalLight(0xffffff, 1.1);
+        key.position.set(2, 3, 4);
+        scene.add(key);
+        scene.add(new THREE.AmbientLight(0xffffff, 0.45));
+
+        const renderer = new THREE.WebGLRenderer({
+          canvas: {
+            width,
+            height,
+            style: {},
+            addEventListener: () => {},
+            removeEventListener: () => {},
+            getContext: () => gl,
+          } as unknown as HTMLCanvasElement,
+          context: gl,
+          alpha: true,
+          antialias: true,
+        });
+        renderer.setSize(width, height, false);
+        renderer.setClearColor(0x000000, 0);
+
+        const start = Date.now();
+        const loop = () => {
+          if (disposed || !mesh || !material) return;
+          raf = requestAnimationFrame(loop);
+          const t = (Date.now() - start) / 1000;
+          const motion = stageMotionFromWeights(expressionRef.current.weights);
+          const baseColor = hexToNumber(accentRef.current);
+
+          const pulse = 1 + motion.scaleBoost;
+          const lip = lipSyncAmountFromPhase(t, speakingRef.current);
+          const shakeX = Math.sin(t * 28) * motion.shake * 0.08;
+          mesh.rotation.y = t * motion.spin;
+          mesh.rotation.x =
+            Math.sin(t * 0.7) * 0.12 + motion.tiltX + motion.sadnessDroop * 0.4;
+          mesh.position.y = Math.sin(t * 2.2) * motion.bob - motion.sadnessDroop * 0.15;
+          mesh.position.x = shakeX;
+          const sy = pulse + lip * 0.14;
+          const sx = pulse * (1 - lip * 0.08);
+          mesh.scale.set(sx, sy, pulse);
+
+          material.color.setHex(baseColor);
+          material.emissive.setHex(baseColor);
+          material.emissive.multiplyScalar(0.06 + motion.emissive * 0.35);
+
+          renderer.render(scene, camera);
+          gl.endFrameEXP();
+        };
+        loop();
+        setReady(true);
+
+        disposeRef.current = () => {
+          disposed = true;
+          cancelAnimationFrame(raf);
+          geometry.dispose();
+          material?.dispose();
+          renderer.dispose();
+        };
+      } catch {
+        onFailed();
+      }
+    },
+    [accentColor, onFailed],
+  );
+
+  const dominant = stageMotionFromWeights(expression.weights).dominant;
+
+  return (
+    <View style={styles.wrap}>
+      <GLView style={styles.gl} onContextCreate={onContextCreate} />
+      {!ready && (
+        <View style={styles.boot}>
+          <Text style={styles.bootText}>Starting 3D stage…</Text>
+        </View>
+      )}
+      <View style={styles.badge}>
+        <Text style={styles.badgeText}>GL · {dominant} · placeholder</Text>
+      </View>
+    </View>
+  );
+}
+
+const styles = StyleSheet.create({
+  wrap: { flex: 1, backgroundColor: UI.bgDeep },
+  gl: { flex: 1 },
+  boot: {
+    ...StyleSheet.absoluteFill,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  bootText: { color: UI.textDim, fontSize: 12 },
+  badge: {
+    position: 'absolute',
+    top: 8,
+    right: 8,
+    backgroundColor: 'rgba(0,0,0,0.45)',
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: 3,
+  },
+  badgeText: { color: UI.textDim, fontSize: 10 },
+});
