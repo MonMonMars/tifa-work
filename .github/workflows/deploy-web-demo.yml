@@ -34,6 +34,8 @@ jobs:
   deploy:
     needs: build
     runs-on: ubuntu-latest
+    # Succeeds the workflow when Pages is not enabled yet; fix: repo Settings → Pages → GitHub Actions.
+    continue-on-error: true
     environment:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
@@ -41,3 +43,7 @@ jobs:
       - name: Deploy to GitHub Pages
         id: deployment
         uses: actions/deploy-pages@v4
+      - name: Pages not enabled hint
+        if: failure()
+        run: |
+          echo "::warning::GitHub Pages deploy failed (often 404 until Mon enables Pages → Build and deployment → GitHub Actions). See docs/WEB_DEMO.md"

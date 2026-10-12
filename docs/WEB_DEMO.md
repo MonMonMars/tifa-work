@@ -18,11 +18,14 @@ Mon-approved **clickable HTTPS demo** of Weepo / Companion B2C — no clone or T
 
 **Not included:** licensed VRM binaries, IAP, accounts.
 
-## One-time repo setup (Mon)
+## One-time repo setup (Mon) — required for live URL
 
-1. GitHub repo **MonMonMars/tifa-work** → **Settings** → **Pages**  
+Until this is done, **Deploy web demo** builds the site but Pages returns **404**.
+
+1. Open **https://github.com/MonMonMars/tifa-work/settings/pages**  
 2. **Build and deployment** → Source: **GitHub Actions** (not “Deploy from branch”)  
-3. After the first successful **Deploy web demo** workflow run, the URL above should load.
+3. **Actions** → **Deploy web demo** → **Run workflow** (or push any commit to `cursor/**` / `main`)  
+4. When the **deploy** job succeeds, open **https://monmonmars.github.io/tifa-work/**
 
 ## Refresh / redeploy
 
