@@ -13,6 +13,7 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { BANTER_PACK_LABELS, type BanterPack } from '../domain/banterLocale';
 import { getPersona } from '../domain/personas';
+import { sortMemoryNotesForDisplay } from '../domain/memoryNote';
 import { formatMemoryExportText } from '../services/memory/exportMemoryNotes';
 import { useCompanionStore } from '../store/companionStore';
 import { inputFontSize } from '../theme/tokens';
@@ -38,6 +39,7 @@ export function SettingsScreen({ onClose, onWipedAllData }: Props) {
     setVoiceConfig,
     memoryNotes,
     rememberNote,
+    togglePinMemoryNote,
     wipeAllLocalData,
     themeMode,
     setThemeMode,
@@ -49,6 +51,10 @@ export function SettingsScreen({ onClose, onWipedAllData }: Props) {
   } = useCompanionStore();
   const [memoryDraft, setMemoryDraft] = useState('');
   const [settingsQuery, setSettingsQuery] = useState('');
+  const sortedMemoryNotes = useMemo(
+    () => sortMemoryNotesForDisplay(memoryNotes),
+    [memoryNotes],
+  );
 
   const showBrain = settingsMatches(settingsQuery, [
     'brain',
@@ -210,6 +216,17 @@ export function SettingsScreen({ onClose, onWipedAllData }: Props) {
             accessibilityLabel="Speak assistant replies"
           />
         </View>
+        <View style={styles.row}>
+          <Text style={styles.label}>Haptic on send</Text>
+          <Switch
+            value={voiceConfig.hapticsOnSend}
+            onValueChange={(hapticsOnSend) => setVoiceConfig({ hapticsOnSend })}
+            accessibilityLabel="Light haptic feedback when sending a message"
+          />
+        </View>
+        <Text style={[styles.help, { marginTop: -4, marginBottom: 12 }]}>
+          Browser demo uses haptics only when supported — no bundled send sound.
+        </Text>
 
         <Text style={styles.fieldLabel}>Offline banter language</Text>
         <Text style={styles.help}>
@@ -377,12 +394,22 @@ export function SettingsScreen({ onClose, onWipedAllData }: Props) {
           <Text style={styles.memBtnText}>Save note</Text>
         </Pressable>
 
-        {memoryNotes.length > 0 && (
+        {sortedMemoryNotes.length > 0 && (
           <View style={styles.memList}>
-            {memoryNotes.map((n, i) => (
-              <Text key={`${i}-${n.slice(0, 8)}`} style={styles.memItem}>
-                · {n}
-              </Text>
+            {sortedMemoryNotes.map((n) => (
+              <View key={n.text} style={styles.memRow}>
+                <Text style={styles.memItem} numberOfLines={3}>
+                  {n.pinned ? '📌 ' : '· '}
+                  {n.text}
+                </Text>
+                <Pressable
+                  onPress={() => togglePinMemoryNote(n.text)}
+                  accessibilityRole="button"
+                  accessibilityLabel={n.pinned ? 'Unpin memory note' : 'Pin memory note'}
+                >
+                  <Text style={styles.memPin}>{n.pinned ? 'Unpin' : 'Pin'}</Text>
+                </Pressable>
+              </View>
             ))}
           </View>
         )}
@@ -459,7 +486,7 @@ export function SettingsScreen({ onClose, onWipedAllData }: Props) {
           </>
         ) : null}
 
-        <Text style={styles.footer}>Foundation build · v0.7.2 · tifa-work → weepo port</Text>
+        <Text style={styles.footer}>Foundation build · v0.8.0 · tifa-work → weepo port</Text>
       </ScrollView>
     </SafeAreaView>
   );
@@ -531,7 +558,15 @@ function makeStyles(UI: ReturnType<typeof useUi>) {
   },
   memBtnText: { color: UI.text, fontWeight: '700' },
   memList: { marginTop: 16 },
-  memItem: { color: UI.textMid, fontSize: 13, marginBottom: 6 },
+  memRow: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    justifyContent: 'space-between',
+    gap: 8,
+    marginBottom: 8,
+  },
+  memItem: { color: UI.textMid, fontSize: 13, flex: 1 },
+  memPin: { color: UI.accent, fontWeight: '700', fontSize: 12, paddingVertical: 2 },
   privacyBox: {
     backgroundColor: UI.surface,
     borderRadius: 3,

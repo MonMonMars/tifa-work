@@ -14,16 +14,22 @@ export {
 
 const STORAGE_KEY = '@companion_b2c/v1';
 
-export async function loadPersistedState(): Promise<PersistedState> {
+export interface LoadPersistedResult {
+  state: PersistedState;
+  /** True when saved data was missing or unreadable — fresh defaults applied. */
+  recoveredFromStorageIssue: boolean;
+}
+
+export async function loadPersistedState(): Promise<LoadPersistedResult> {
   try {
     const raw = await AsyncStorage.getItem(STORAGE_KEY);
     if (!raw) {
-      return mergePersistedState(null);
+      return { state: mergePersistedState(null), recoveredFromStorageIssue: false };
     }
     const parsed = JSON.parse(raw) as Partial<PersistedState>;
-    return mergePersistedState(parsed);
+    return { state: mergePersistedState(parsed), recoveredFromStorageIssue: false };
   } catch {
-    return mergePersistedState(null);
+    return { state: mergePersistedState(null), recoveredFromStorageIssue: true };
   }
 }
 

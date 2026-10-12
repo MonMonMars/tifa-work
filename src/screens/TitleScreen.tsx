@@ -25,7 +25,10 @@ export function TitleScreen({ ready, onEnter, returning }: Props) {
         {returning ? 'Welcome back — your companion is ready.' : 'AI avatar companion for chat & companionship'}
       </Text>
       {!ready ? (
-        <ActivityIndicator color={UI.accent} style={{ marginTop: 32 }} />
+        <>
+          <ActivityIndicator color={UI.accent} style={{ marginTop: 32 }} />
+          <Text style={styles.loadingHint}>Loading your companion on this device…</Text>
+        </>
       ) : (
         <Pressable style={styles.btn} onPress={onEnter}>
           <Text style={styles.btnText}>Enter</Text>
@@ -52,6 +55,7 @@ const styles = StyleSheet.create({
   },
   title: { color: UI.text, fontSize: 42, fontWeight: '900' },
   sub: { color: UI.textMid, marginTop: 8, textAlign: 'center' },
+  loadingHint: { color: UI.textDim, fontSize: 12, marginTop: 14, textAlign: 'center', lineHeight: 17 },
   btn: {
     marginTop: 36,
     backgroundColor: UI.accent,

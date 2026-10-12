@@ -2,6 +2,14 @@
 
 Summary for **Mon** from MVP foundation releases **0.3.x → 0.7.x**. All data on-device unless BYO LLM is enabled.
 
+## [0.8.0] — Chat starters, memory pins, public web demo
+
+- Persona-aware **quick reply** chips under chat composer (offline-friendly)
+- **Pin / unpin** device memory notes (pinned first in prompt + export)
+- Haptic-on-send toggle (no bundled audio — keeps bundle lean)
+- Stronger ErrorBoundary + boot recovery banner when storage read fails
+- **Public web demo:** `npm run export:web`, GitHub Pages — see `docs/WEB_DEMO.md`
+
 ## [0.7.2] — Home & settings polish
 
 - Home widget stack scrolls on small screens (check-in + focus + history)

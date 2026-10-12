@@ -1,6 +1,6 @@
 {
   "name": "companion-b2c",
-  "version": "0.7.2",
+  "version": "0.8.0",
   "main": "index.ts",
   "private": true,
   "scripts": {
@@ -8,6 +8,7 @@
     "ios": "expo start --ios",
     "android": "expo start --android",
     "web": "expo start --web",
+    "export:web": "expo export --platform web",
     "typecheck": "tsc --noEmit",
     "test": "node --experimental-strip-types --test tests/*.test.ts"
   },
@@ -22,8 +23,10 @@
     "expo-speech": "~57.0.3",
     "expo-status-bar": "~57.0.1",
     "react": "19.2.3",
+    "react-dom": "19.2.3",
     "react-native": "0.86.3",
     "react-native-safe-area-context": "~5.6.0",
+    "react-native-web": "^0.21.2",
     "three": "^0.186.1"
   },
   "devDependencies": {

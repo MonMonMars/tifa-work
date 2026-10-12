@@ -1,3 +1,5 @@
+import type { MemoryNote } from '../domain/memoryNote.ts';
+import { normalizeMemoryNotes } from '../domain/memoryNote.ts';
 import type { ChatMessage } from '../domain/messages';
 import type { PersonaId } from '../domain/personas';
 import type { LlmConfig } from '../services/ai/types';
@@ -89,6 +91,7 @@ const DEFAULT_VOICE_CONFIG: VoiceConfig = {
   rate: 1,
   locale: 'en-US',
   banterPack: 'bilingual',
+  hapticsOnSend: true,
 };
 
 export const DEFAULT_LLM_CONFIG: LlmConfig = {
@@ -102,7 +105,7 @@ export const DEFAULT_LLM_CONFIG: LlmConfig = {
 export interface PersistedState {
   personaId: PersonaId | null;
   histories: Partial<Record<PersonaId, ChatMessage[]>>;
-  memoryNotes: string[];
+  memoryNotes: MemoryNote[];
   llmConfig: LlmConfig;
   voiceConfig: VoiceConfig;
   hasCompletedOnboarding: boolean;
@@ -144,5 +147,6 @@ export function mergePersistedState(parsed: Partial<PersistedState> | null | und
     notificationPrefs: { ...DEFAULT_NOTIFICATION_PREFS, ...parsed.notificationPrefs },
     focus: mergeFocusPersisted(parsed.focus),
     workCompanion: { ...DEFAULT_WORK_COMPANION_PREFS, ...parsed.workCompanion },
+    memoryNotes: normalizeMemoryNotes(parsed.memoryNotes),
   };
 }

@@ -26,8 +26,11 @@ test('mergePersistedState deep-merges llm and voice config', () => {
 });
 
 test('mergePersistedState preserves memory notes array', () => {
-  const merged = mergePersistedState({ memoryNotes: ['hello', 'world'] });
-  assert.deepEqual(merged.memoryNotes, ['hello', 'world']);
+  const merged = mergePersistedState(JSON.parse('{"memoryNotes":["hello","world"]}'));
+  assert.deepEqual(merged.memoryNotes, [
+    { text: 'hello', pinned: false },
+    { text: 'world', pinned: false },
+  ]);
 });
 
 test('mergePersistedState merges check-in defaults', () => {

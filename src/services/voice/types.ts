@@ -9,6 +9,8 @@ export interface VoiceConfig {
   locale: string;
   /** Offline banter language pack when LLM is off or fallback. */
   banterPack: BanterPack;
+  /** Light haptic on send (no bundled sound — keeps app lean). */
+  hapticsOnSend: boolean;
 }
 
 export const DEFAULT_VOICE_CONFIG: VoiceConfig = {
@@ -16,6 +18,7 @@ export const DEFAULT_VOICE_CONFIG: VoiceConfig = {
   rate: 1,
   locale: 'en-US',
   banterPack: 'bilingual',
+  hapticsOnSend: true,
 };
 
 export interface SpeakOptions {

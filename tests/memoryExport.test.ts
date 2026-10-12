@@ -10,11 +10,16 @@ test('formatMemoryExportText empty notes', () => {
 });
 
 test('formatMemoryExportText lists notes without secrets', () => {
-  const text = formatMemoryExportText(['Likes tea', 'Name is Sam'], {
+  const text = formatMemoryExportText(
+    [
+      { text: 'Likes tea', pinned: false },
+      { text: 'Name is Sam', pinned: true },
+    ],
+    {
     personaName: 'Mika',
     exportedAt: new Date('2026-10-11T12:00:00Z'),
   });
   assert.match(text, /Active companion: Mika/);
-  assert.match(text, /1\. Likes tea/);
-  assert.match(text, /2\. Name is Sam/);
+  assert.match(text, /1\. 📌 Name is Sam/);
+  assert.match(text, /2\. Likes tea/);
 });

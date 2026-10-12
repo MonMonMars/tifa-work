@@ -50,6 +50,8 @@ export function HomeScreen({
     focusLast7Days,
     focusActiveBreak,
     dismissFocusBreak,
+    bootRecoveryBanner,
+    dismissBootRecoveryBanner,
   } = useCompanionStore();
 
   const { height: windowHeight } = useWindowDimensions();
@@ -80,6 +82,13 @@ export function HomeScreen({
           </Pressable>
         </View>
       </View>
+
+      {bootRecoveryBanner ? (
+        <Pressable style={styles.recoveryBanner} onPress={dismissBootRecoveryBanner}>
+          <Text style={styles.recoveryText}>{bootRecoveryBanner}</Text>
+          <Text style={styles.recoveryDismiss}>Tap to dismiss</Text>
+        </Pressable>
+      ) : null}
 
       <ScrollView
         style={widgetMaxHeight != null ? { maxHeight: widgetMaxHeight, flexGrow: 0 } : undefined}
@@ -151,6 +160,17 @@ export function HomeScreen({
 function makeStyles(UI: ReturnType<typeof useUi>) {
   return StyleSheet.create({
   wrap: { flex: 1, backgroundColor: UI.bg },
+  recoveryBanner: {
+    marginHorizontal: 16,
+    marginBottom: 8,
+    padding: 10,
+    backgroundColor: UI.accentSoft,
+    borderRadius: 3,
+    borderWidth: 1,
+    borderColor: UI.accentLine,
+  },
+  recoveryText: { color: UI.textMid, fontSize: 12, lineHeight: 17 },
+  recoveryDismiss: { color: UI.textDim, fontSize: 11, marginTop: 6 },
   topBar: {
     flexDirection: 'row',
     alignItems: 'center',

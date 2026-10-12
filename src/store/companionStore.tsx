@@ -10,6 +10,8 @@ import React, {
 import { trimThreadForStorage } from '../domain/chatThreadLimits';
 import type { ChatMessage } from '../domain/messages';
 import { createMessage } from '../domain/messages';
+import type { MemoryNote } from '../domain/memoryNote';
+import { memoryTextsForPrompt } from '../domain/memoryNote';
 import type { PersonaId } from '../domain/personas';
 import { getPersona } from '../domain/personas';
 import { IDLE_EXPRESSION, type ExpressionSnapshot } from '../expression/types';
@@ -64,7 +66,10 @@ interface CompanionStoreValue {
   histories: Partial<Record<PersonaId, ChatMessage[]>>;
   llmConfig: LlmConfig;
   voiceConfig: VoiceConfig;
-  memoryNotes: string[];
+  memoryNotes: MemoryNote[];
+  togglePinMemoryNote: (text: string) => void;
+  bootRecoveryBanner: string | null;
+  dismissBootRecoveryBanner: () => void;
   expression: ExpressionSnapshot;
   chatBusy: boolean;
   chatError: string | null;
@@ -149,6 +154,7 @@ export function CompanionProvider({ children }: { children: ReactNode }) {
   const [checkInToast, setCheckInToast] = useState<string | null>(null);
   const [avatarPokeToast, setAvatarPokeToast] = useState<string | null>(null);
   const [focusToast, setFocusToast] = useState<string | null>(null);
+  const [bootRecoveryBanner, setBootRecoveryBanner] = useState<string | null>(null);
 
   const showFocusLine = useCallback(
     (phase: 'start' | 'complete' | 'abandon', seed: number) => {
@@ -169,7 +175,7 @@ export function CompanionProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     let alive = true;
     (async () => {
-      const loaded = await loadPersistedState();
+      const { state: loaded, recoveredFromStorageIssue } = await loadPersistedState();
       if (!alive) return;
       const now = Date.now();
       const reconciled = reconcileFocusOnLoad(loaded.focus, now);
@@ -188,6 +194,11 @@ export function CompanionProvider({ children }: { children: ReactNode }) {
         }
       }
       setState(next);
+      if (recoveredFromStorageIssue) {
+        setBootRecoveryBanner(
+          'We could not read saved data on this device — started fresh. Your prior chats may be gone on this phone only.',
+        );
+      }
       setReady(true);
     })();
     return () => {
@@ -336,9 +347,20 @@ export function CompanionProvider({ children }: { children: ReactNode }) {
     if (!trimmed) return;
     setState((s) => ({
       ...s,
-      memoryNotes: [...s.memoryNotes, trimmed].slice(-12),
+      memoryNotes: [...s.memoryNotes, { text: trimmed, pinned: false }].slice(-12),
     }));
   }, []);
+
+  const togglePinMemoryNote = useCallback((text: string) => {
+    setState((s) => ({
+      ...s,
+      memoryNotes: s.memoryNotes.map((n) =>
+        n.text === text ? { ...n, pinned: !n.pinned } : n,
+      ),
+    }));
+  }, []);
+
+  const dismissBootRecoveryBanner = useCallback(() => setBootRecoveryBanner(null), []);
 
   const saveFocusWorkNote = useCallback(
     (note: string) => {
@@ -423,6 +445,7 @@ export function CompanionProvider({ children }: { children: ReactNode }) {
     setIsSpeaking(false);
     setCheckInToast(null);
     setAvatarPokeToast(null);
+    setBootRecoveryBanner(null);
   }, [stopSpeaking]);
 
   const sendMessage = useCallback(
@@ -433,6 +456,7 @@ export function CompanionProvider({ children }: { children: ReactNode }) {
       if (!trimmed || chatBusy) return;
 
       await stopSpeaking();
+      if (state.voiceConfig.hapticsOnSend) void hapticOnSend();
       setChatBusy(true);
       setChatError(null);
       setExpression(analyzeUserText(trimmed));
@@ -443,7 +467,12 @@ export function CompanionProvider({ children }: { children: ReactNode }) {
       }
 
       const history = state.histories[personaId] ?? [];
-      const memorySnippet = [...state.memoryNotes, memoryFromText].filter(Boolean).slice(-5).join('; ');
+      const promptTexts = memoryTextsForPrompt(state.memoryNotes, 5);
+      const memorySnippet = (
+        memoryFromText ? [...promptTexts, memoryFromText] : promptTexts
+      )
+        .slice(-5)
+        .join('; ');
       const userMessage = createMessage('user', trimmed);
 
       const useStream =
@@ -597,6 +626,9 @@ export function CompanionProvider({ children }: { children: ReactNode }) {
       setLlmConfig,
       setVoiceConfig,
       rememberNote,
+      togglePinMemoryNote,
+      bootRecoveryBanner,
+      dismissBootRecoveryBanner,
       getHistory,
       ensureGreeting,
       sendMessage,
@@ -646,6 +678,9 @@ export function CompanionProvider({ children }: { children: ReactNode }) {
       setLlmConfig,
       setVoiceConfig,
       rememberNote,
+      togglePinMemoryNote,
+      bootRecoveryBanner,
+      dismissBootRecoveryBanner,
       getHistory,
       ensureGreeting,
       sendMessage,

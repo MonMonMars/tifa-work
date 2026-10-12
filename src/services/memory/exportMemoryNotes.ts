@@ -1,8 +1,11 @@
+import type { MemoryNote } from '../../domain/memoryNote.ts';
+import { sortMemoryNotesForDisplay } from '../../domain/memoryNote.ts';
+
 /**
  * Plain-text export for Share sheet — never includes API keys or LLM config.
  */
 export function formatMemoryExportText(
-  notes: string[],
+  notes: MemoryNote[],
   options?: { personaName?: string; exportedAt?: Date },
 ): string {
   const at = options?.exportedAt ?? new Date();
@@ -19,6 +22,7 @@ export function formatMemoryExportText(
     );
   }
 
-  const body = notes.map((n, i) => `${i + 1}. ${n}`);
+  const ordered = sortMemoryNotesForDisplay(notes);
+  const body = ordered.map((n, i) => `${i + 1}. ${n.pinned ? '📌 ' : ''}${n.text}`);
   return [...header, ...body, '', '---', 'Not professional advice · AI companion app'].join('\n');
 }

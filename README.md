@@ -15,6 +15,8 @@ Node **22+** for `npm test`. Open with **Expo Go** (QR) or `npm run ios` on macO
 |--------|---------|
 | `npm run typecheck` | TypeScript |
 | `npm test` | Unit tests — emotion M5, check-in, offline banter locales, LLM, SSE |
+| `npm run web` | Expo web dev server |
+| `npm run export:web` | Static web export → `dist/` (GitHub Pages) |
 
 ## What’s in this MVP foundation
 
@@ -32,6 +34,11 @@ Node **22+** for `npm test`. Open with **Expo Go** (QR) or `npm run ios` on macO
 - **v0.7.0:** work focus sessions (25/50/custom), daily minutes, optional work notes, companion tips toggle
 - **v0.7.1:** 7-day focus history strip, soft break timer, early-stop nudge — see `CHANGELOG.md`
 - **v0.7.2:** compact Home widgets, Settings filter, shared day keys — see `CHANGELOG.md`
+- **v0.8.0:** quick replies, pinned memory, public browser demo — see `CHANGELOG.md`
+
+## Public browser demo (no install)
+
+**https://monmonmars.github.io/tifa-work/** — deploy & refresh: **[docs/WEB_DEMO.md](./docs/WEB_DEMO.md)**
 - **Privacy copy:** Settings + `docs/PRIVACY.md`  
 
 ## Screenshots (Mon — attach later)
@@ -78,6 +85,7 @@ Quick smoke:
 | [SHIP_CHECKLIST.md](./docs/SHIP_CHECKLIST.md) | Pre-release checklist |
 | [PORT_TO_WEEPO.md](./docs/PORT_TO_WEEPO.md) | Copy this foundation into `MonMonMars/weepo` |
 | [CONTRIBUTING.md](./CONTRIBUTING.md) | Agent/Mon dev loop & scope guardrails |
+| [WEB_DEMO.md](./docs/WEB_DEMO.md) | Live HTTPS demo URL + GitHub Pages redeploy |
 | [EAS_TESTFLIGHT.md](./docs/EAS_TESTFLIGHT.md) | EAS build + TestFlight when ready |
 
 ## iOS

@@ -2,6 +2,8 @@ import React, { useEffect, useMemo, useState } from 'react';
 import { Alert, Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { MessageComposer } from '../components/chat/MessageComposer';
+import { QuickRepliesRow } from '../components/chat/QuickRepliesRow';
+import { getQuickReplies } from '../services/chat/quickReplies';
 import { MessageList } from '../components/chat/MessageList';
 import { THREAD_STORAGE_CAP } from '../domain/chatThreadLimits';
 import { getPersona } from '../domain/personas';
@@ -42,7 +44,12 @@ export function ChatScreen({ personaId, onClose }: Props) {
     lastChatProvider,
     isSpeaking,
     clearThread,
+    voiceConfig,
   } = useCompanionStore();
+  const quickReplies = useMemo(
+    () => getQuickReplies(personaId, voiceConfig.banterPack),
+    [personaId, voiceConfig.banterPack],
+  );
   const [search, setSearch] = useState('');
   const persona = useMemo(() => getPersona(personaId), [personaId]);
   const messages = getHistory(personaId);
@@ -150,6 +157,12 @@ export function ChatScreen({ personaId, onClose }: Props) {
           threadAtStorageCap={!search.trim() && messages.length >= THREAD_STORAGE_CAP}
         />
       </View>
+
+      <QuickRepliesRow
+        replies={quickReplies}
+        busy={chatBusy}
+        onPick={(text) => void sendMessage(text)}
+      />
 
       <MessageComposer
         busy={chatBusy}

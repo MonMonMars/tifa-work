@@ -9,7 +9,6 @@ import {
   TextInput,
   View,
 } from 'react-native';
-import { hapticOnSend } from '../../services/haptics/feedback';
 import { sttStubProvider } from '../../services/voice/sttStub';
 import { inputFontSize } from '../../theme/tokens';
 import { useUi } from '../../theme/useUi';
@@ -29,7 +28,6 @@ export function MessageComposer({ busy, busyLabel = 'Sending…', onSend }: Prop
     const trimmed = text.trim();
     if (!trimmed || busy) return;
     setText('');
-    void hapticOnSend();
     onSend(trimmed);
   };
 

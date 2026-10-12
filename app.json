@@ -2,7 +2,7 @@
   "expo": {
     "name": "Weepo",
     "slug": "companion-b2c",
-    "version": "0.7.2",
+    "version": "0.8.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "dark",
@@ -32,7 +32,11 @@
       }
     },
     "web": {
-      "favicon": "./assets/favicon.png"
+      "favicon": "./assets/favicon.png",
+      "bundler": "metro"
+    },
+    "experiments": {
+      "baseUrl": "/tifa-work"
     },
     "plugins": [
       "expo-asset",

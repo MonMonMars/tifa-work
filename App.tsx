@@ -1,5 +1,5 @@
 import React, { useCallback, useState } from 'react';
-import { StyleSheet, View } from 'react-native';
+import { Platform, StyleSheet, Text, View } from 'react-native';
 import { StatusBar } from 'expo-status-bar';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { ErrorBoundary } from './src/components/ErrorBoundary';
@@ -101,6 +101,13 @@ function AppBody() {
   return (
     <View style={[styles.root, { backgroundColor: UI.bg }]}>
       <StatusBar style={statusStyle} />
+      {Platform.OS === 'web' ? (
+        <View style={[styles.webDemoBar, { borderBottomColor: UI.hairline, backgroundColor: UI.surface }]}>
+          <Text style={[styles.webDemoText, { color: UI.textDim }]}>
+            Browser demo · chats & settings stay in this browser only
+          </Text>
+        </View>
+      ) : null}
       {/* Home + avatar stage stays mounted under overlays (aiva-companion pattern). */}
       <HomeScreen
         personaId={personaId}
@@ -143,6 +150,12 @@ function AppBody() {
 
 const styles = StyleSheet.create({
   root: { flex: 1 },
+  webDemoBar: {
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderBottomWidth: 1,
+  },
+  webDemoText: { fontSize: 11, textAlign: 'center', fontWeight: '600' },
   overlay: {
     ...StyleSheet.absoluteFill,
   },
